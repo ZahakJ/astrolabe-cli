@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // tuiRequest fills the parts of a TUIRequest common to every mode. The vault
@@ -38,10 +38,10 @@ func (a *app) runTUI(req TUIRequest) error {
 }
 
 func tuiMissing() error {
-	return fmt.Errorf("the interactive reader is %w (the shell verbs work: see 'folio help')", ErrNotBuilt)
+	return fmt.Errorf("the interactive reader is %w (the shell verbs work: see 'astrolabe help')", ErrNotBuilt)
 }
 
-// openDefault is plain `folio`: today's daily note if it exists, else the
+// openDefault is plain `astrolabe`: today's daily note if it exists, else the
 // last note of this vault, else the home screen (DESIGN.md §4.1). The first
 // interactive run in a fresh ~/notes writes Welcome.md (DESIGN.md §3).
 func (a *app) openDefault() error {
@@ -92,7 +92,7 @@ func fileExists(p string) bool {
 	return err == nil && fi.Mode().IsRegular()
 }
 
-// openNote is `folio NOTE`.
+// openNote is `astrolabe NOTE`.
 func (a *app) openNote(args []string) error {
 	a.firstArg = true // a mistyped verb gets a suggestion first
 	ref, err := a.resolveNote(strings.Join(args, " "))
@@ -108,14 +108,14 @@ func (a *app) openNote(args []string) error {
 	return a.runTUI(req)
 }
 
-// openStdin is `folio -`.
+// openStdin is `astrolabe -`.
 func (a *app) openStdin() error {
 	b, ok, err := a.readStdin()
 	if err != nil {
 		return err
 	}
 	if !ok {
-		return usagef("", "'folio -' pages Markdown from stdin, but stdin is a terminal; pipe something in")
+		return usagef("", "'astrolabe -' pages Markdown from stdin, but stdin is a terminal; pipe something in")
 	}
 	if a.env.Hooks.RunTUI == nil {
 		return tuiMissing()
@@ -128,7 +128,7 @@ func (a *app) openStdin() error {
 	return a.runTUI(req)
 }
 
-// cmdPick is `folio pick [QUERY]`.
+// cmdPick is `astrolabe pick [QUERY]`.
 func (a *app) cmdPick(args []string) error {
 	fs := newFlagSet("pick")
 	pos, err := fs.Parse(args)
@@ -151,7 +151,7 @@ func (a *app) cmdPick(args []string) error {
 	if res.Path == "" {
 		return ErrCancelled
 	}
-	a.out("%s\n", v.Abs(res.Path))
+	a.raw("%s\n", v.Abs(res.Path))
 	return nil
 }
 
@@ -186,7 +186,7 @@ func (a *app) source(verb string, pos []string) (src []byte, name, rel string, e
 	return b, pos[0], ref.Rel, nil
 }
 
-// cmdRender is `folio render [FILE|-]`.
+// cmdRender is `astrolabe render [FILE|-]`.
 func (a *app) cmdRender(args []string) error {
 	fs := newFlagSet("render")
 	width := fs.Int("-w", "--width", 0)
@@ -219,7 +219,7 @@ func (a *app) cmdRender(args []string) error {
 	})
 }
 
-// cmdExport is `folio export NOTE [-o FILE]`.
+// cmdExport is `astrolabe export NOTE [-o FILE]`.
 func (a *app) cmdExport(args []string) error {
 	fs := newFlagSet("export")
 	outFile := fs.String("-o", "--output")

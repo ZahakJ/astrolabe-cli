@@ -11,14 +11,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // fixedNow is Sunday 4 October 2026, 10:30 local time.
 var fixedNow = time.Date(2026, 10, 4, 10, 30, 0, 0, time.Local)
 
-// run is one in-process invocation of folio.
+// run is one in-process invocation of astrolabe.
 type run struct {
 	args      []string
 	stdin     string
@@ -54,7 +54,7 @@ func newSandbox(t *testing.T, files map[string]string) *sandbox {
 		"LANG":            "en_US.UTF-8",
 		"TERM":            "xterm-256color",
 	}}
-	if err := os.MkdirAll(filepath.Join(vault, ".folio"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(vault, ".astrolabe"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	for name, body := range files {
@@ -130,7 +130,7 @@ func (s *sandbox) must(want int, r run) result {
 	s.t.Helper()
 	res := s.run(r)
 	if res.code != want {
-		s.t.Fatalf("folio %s: exit %d, want %d\nstdout:\n%s\nstderr:\n%s", strings.Join(r.args, " "), res.code, want, res.stdout, res.stderr)
+		s.t.Fatalf("astrolabe %s: exit %d, want %d\nstdout:\n%s\nstderr:\n%s", strings.Join(r.args, " "), res.code, want, res.stdout, res.stderr)
 	}
 	return res
 }
@@ -221,7 +221,7 @@ func TestAddFromStdinAsTask(t *testing.T) {
 func TestAddNothingIsUsageError(t *testing.T) {
 	s := basicVault(t)
 	res := s.must(2, args("add"))
-	if !strings.Contains(res.stderr, "nothing to capture") || !strings.Contains(res.stderr, "usage: folio add") {
+	if !strings.Contains(res.stderr, "nothing to capture") || !strings.Contains(res.stderr, "usage: astrolabe add") {
 		t.Errorf("stderr: %q", res.stderr)
 	}
 	if res.stdout != "" {
@@ -313,7 +313,7 @@ func TestTodayPrint(t *testing.T) {
 		t.Errorf("daily note %q", got)
 	}
 	// daily_dir from the config file takes precedence.
-	cfg := filepath.Join(s.home, ".config", "folio", "config")
+	cfg := filepath.Join(s.home, ".config", "astrolabe-cli", "config")
 	_ = os.MkdirAll(filepath.Dir(cfg), 0o755)
 	_ = os.WriteFile(cfg, []byte("daily_dir = journal\n"), 0o644)
 	res = s.must(0, args("today", "--print"))
@@ -561,7 +561,7 @@ func TestPathAndRootResolution(t *testing.T) {
 		t.Errorf("path Inbox: %q", res.stdout)
 	}
 
-	// From elsewhere: -C before or after the verb, FOLIO_DIR, flag beats env.
+	// From elsewhere: -C before or after the verb, ASTROLABE_DIR, flag beats env.
 	other := t.TempDir()
 	res = s.must(0, run{args: []string{"-C", s.vault, "path"}, cwd: other})
 	if strings.TrimSpace(res.stdout) != s.vault {
@@ -571,16 +571,25 @@ func TestPathAndRootResolution(t *testing.T) {
 	if strings.TrimSpace(res.stdout) != s.vault {
 		t.Errorf("--dir= after verb: %q", res.stdout)
 	}
+	res = s.must(0, run{args: []string{"path"}, cwd: other, env: map[string]string{"ASTROLABE_DIR": s.vault}})
+	if strings.TrimSpace(res.stdout) != s.vault {
+		t.Errorf("ASTROLABE_DIR: %q", res.stdout)
+	}
+	// The former name's variable is a silent fallback; the new one wins.
 	res = s.must(0, run{args: []string{"path"}, cwd: other, env: map[string]string{"FOLIO_DIR": s.vault}})
 	if strings.TrimSpace(res.stdout) != s.vault {
-		t.Errorf("FOLIO_DIR: %q", res.stdout)
+		t.Errorf("FOLIO_DIR fallback: %q", res.stdout)
 	}
-	res = s.must(0, run{args: []string{"path", "-C", other}, cwd: other, env: map[string]string{"FOLIO_DIR": s.vault}})
+	res = s.must(0, run{args: []string{"path"}, cwd: other, env: map[string]string{"FOLIO_DIR": other, "ASTROLABE_DIR": s.vault}})
+	if strings.TrimSpace(res.stdout) != s.vault {
+		t.Errorf("ASTROLABE_DIR must beat FOLIO_DIR: %q", res.stdout)
+	}
+	res = s.must(0, run{args: []string{"path", "-C", other}, cwd: other, env: map[string]string{"ASTROLABE_DIR": s.vault}})
 	if strings.TrimSpace(res.stdout) != other {
-		t.Errorf("-C must beat FOLIO_DIR: %q", res.stdout)
+		t.Errorf("-C must beat ASTROLABE_DIR: %q", res.stdout)
 	}
 	// Machine output from outside the vault uses absolute paths.
-	res = s.must(0, run{args: []string{"ls", "-l"}, cwd: other, env: map[string]string{"FOLIO_DIR": s.vault}})
+	res = s.must(0, run{args: []string{"ls", "-l"}, cwd: other, env: map[string]string{"ASTROLABE_DIR": s.vault}})
 	if !strings.Contains(res.stdout, filepath.Join(s.vault, "Inbox.md")) {
 		t.Errorf("ls from outside: %q", res.stdout)
 	}
@@ -633,7 +642,7 @@ func TestReservedWordsAndNotes(t *testing.T) {
 		f.reqs = nil
 		s.must(0, run{args: []string{arg}, hooks: f.hooks()})
 		if len(f.reqs) != 1 || f.reqs[0].Path != want {
-			t.Errorf("folio %q opened %+v, want %s", arg, f.reqs, want)
+			t.Errorf("astrolabe %q opened %+v, want %s", arg, f.reqs, want)
 		}
 	}
 	f.reqs = nil
@@ -650,18 +659,18 @@ func TestReservedWordsAndNotes(t *testing.T) {
 		t.Errorf("ad opened %q", f.reqs[0].Path)
 	}
 	res := s.must(1, run{args: []string{"tsks"}, hooks: f.hooks()})
-	if !strings.HasPrefix(res.stderr, "folio: did you mean `folio tasks`?\n") {
+	if !strings.HasPrefix(res.stderr, "astrolabe: did you mean `astrolabe tasks`?\n") {
 		t.Errorf("stderr %q", res.stderr)
 	}
 	// The verb suggestion comes first, before note matches, and a typo of a
 	// verb is not opened by a fuzzy match.
 	s.write("Tasks backlog.md", "# Tasks backlog\n")
 	res = s.must(1, run{args: []string{"tsks"}, hooks: f.hooks()})
-	if !strings.HasPrefix(res.stderr, "folio: did you mean `folio tasks`?\n") || !strings.Contains(res.stderr, "Tasks backlog.md") {
+	if !strings.HasPrefix(res.stderr, "astrolabe: did you mean `astrolabe tasks`?\n") || !strings.Contains(res.stderr, "Tasks backlog.md") {
 		t.Errorf("stderr %q", res.stderr)
 	}
 	res = s.must(1, run{args: []string{"fnd", "rollback"}, hooks: f.hooks()})
-	if !strings.HasPrefix(res.stderr, "folio: did you mean `folio find rollback`?\n") {
+	if !strings.HasPrefix(res.stderr, "astrolabe: did you mean `astrolabe find rollback`?\n") {
 		t.Errorf("stderr %q", res.stderr)
 	}
 	// An exact note name always wins.
@@ -705,7 +714,7 @@ func TestDefaultAndTodayTUI(t *testing.T) {
 	if f.reqs[1].Mode != ModeToday || f.reqs[1].Path != "daily/2026-10-04.md" {
 		t.Errorf("today: %+v", f.reqs[1])
 	}
-	// Now today's note exists, plain folio opens it.
+	// Now today's note exists, plain astrolabe opens it.
 	s.must(0, run{hooks: f.hooks()})
 	if f.reqs[2].Path != "daily/2026-10-04.md" {
 		t.Errorf("default with a daily note: %q", f.reqs[2].Path)
@@ -720,7 +729,7 @@ func TestDefaultAndTodayTUI(t *testing.T) {
 
 func TestDefaultUsesRecent(t *testing.T) {
 	s := basicVault(t)
-	state := filepath.Join(s.home, ".state", "folio")
+	state := filepath.Join(s.home, ".state", "astrolabe-cli")
 	_ = os.MkdirAll(state, 0o755)
 	rec := "12\t" + filepath.Join(t.TempDir(), "elsewhere.md") + "\n7\t" + filepath.Join(s.vault, "Inbox.md") + "\n"
 	_ = os.WriteFile(filepath.Join(state, "recent"), []byte(rec), 0o644)
@@ -736,11 +745,11 @@ func TestNotBuiltHooks(t *testing.T) {
 	for _, a := range [][]string{{}, {"Inbox"}, {"today"}, {"pick"}, {"new", "-o", "X"}} {
 		res := s.must(1, args(a...))
 		if !strings.Contains(res.stderr, "not built") {
-			t.Errorf("folio %v: %q", a, res.stderr)
+			t.Errorf("astrolabe %v: %q", a, res.stderr)
 		}
 	}
 	if _, err := os.Stat(filepath.Join(s.vault, "daily")); err == nil {
-		t.Error("folio today created a note although the TUI is missing")
+		t.Error("astrolabe today created a note although the TUI is missing")
 	}
 	if _, err := os.Stat(filepath.Join(s.vault, "X.md")); err == nil {
 		t.Error("new -o created a note although the TUI is missing")
@@ -816,8 +825,8 @@ func TestGlobalFlagErrors(t *testing.T) {
 		{"tasks", "extra"},
 	} {
 		res := s.must(2, args(a...))
-		if res.stdout != "" || !strings.HasPrefix(res.stderr, "folio: ") {
-			t.Errorf("folio %v: stdout %q stderr %q", a, res.stdout, res.stderr)
+		if res.stdout != "" || !strings.HasPrefix(res.stderr, "astrolabe: ") {
+			t.Errorf("astrolabe %v: stdout %q stderr %q", a, res.stdout, res.stderr)
 		}
 	}
 	// Valid globals anywhere.
@@ -843,7 +852,7 @@ func TestHelpAndVersion(t *testing.T) {
 			t.Errorf("verb %q has no help", v)
 		}
 		res := s.must(0, args("help", v))
-		if !strings.HasPrefix(res.stdout, "folio "+v) {
+		if !strings.HasPrefix(res.stdout, "astrolabe "+v) {
 			t.Errorf("help %s starts %q", v, firstLine(res.stdout))
 		}
 		for i, l := range strings.Split(res.stdout, "\n") {
@@ -857,7 +866,7 @@ func TestHelpAndVersion(t *testing.T) {
 			t.Errorf("overview line %d is %d columns", i+1, w)
 		}
 	}
-	if res := s.must(0, args("find", "--help")); !strings.HasPrefix(res.stdout, "folio find") {
+	if res := s.must(0, args("find", "--help")); !strings.HasPrefix(res.stdout, "astrolabe find") {
 		t.Errorf("find --help: %q", firstLine(res.stdout))
 	}
 	if res := s.must(0, args("-h")); !strings.Contains(res.stdout, "Global flags") {
@@ -868,10 +877,10 @@ func TestHelpAndVersion(t *testing.T) {
 		t.Errorf("help fnd: %q", res.stderr)
 	}
 	res = s.must(0, args("version"))
-	if !strings.HasPrefix(res.stdout, "folio v0.0.0-test (") {
+	if !strings.HasPrefix(res.stdout, "astrolabe v0.0.0-test (") {
 		t.Errorf("version: %q", res.stdout)
 	}
-	if res := s.must(0, args("--version")); !strings.HasPrefix(res.stdout, "folio v0.0.0-test") {
+	if res := s.must(0, args("--version")); !strings.HasPrefix(res.stdout, "astrolabe v0.0.0-test") {
 		t.Errorf("--version: %q", res.stdout)
 	}
 	for _, v := range Verbs() {
@@ -886,7 +895,7 @@ func TestHelpAndVersion(t *testing.T) {
 
 func TestDoctor(t *testing.T) {
 	s := basicVault(t)
-	cfg := filepath.Join(s.home, ".config", "folio", "config")
+	cfg := filepath.Join(s.home, ".config", "astrolabe-cli", "config")
 	_ = os.MkdirAll(filepath.Dir(cfg), 0o755)
 	_ = os.WriteFile(cfg, []byte("theme = mocha\ncolour = yes\n"), 0o644)
 	res := s.must(0, args("doctor"))
@@ -909,7 +918,7 @@ func TestDoctor(t *testing.T) {
 	if !strings.Contains(res.stdout, "set -g set-clipboard on") {
 		t.Errorf("doctor inside tmux lacks the set-clipboard note:\n%s", res.stdout)
 	}
-	if _, err := vault.WriteRecovered(filepath.Join(s.home, ".state", "folio", "recovered"), "Inbox.md", []byte("x"), fixedNow); err != nil {
+	if _, err := vault.WriteRecovered(filepath.Join(s.home, ".state", "astrolabe-cli", "recovered"), "Inbox.md", []byte("x"), fixedNow); err != nil {
 		t.Fatal(err)
 	}
 	if res = s.must(0, args("doctor")); !strings.Contains(res.stdout, "1 unsaved buffer") {
@@ -1133,5 +1142,33 @@ func TestHelpExamplesSafeWithSpaces(t *testing.T) {
 				t.Errorf("help %s: GNU-only xargs -d: %s", verb, strings.TrimSpace(l))
 			}
 		}
+	}
+}
+
+// On a terminal that reverses right-to-left runs itself (kitty), human
+// output is emitted in visual order with each run's text pre-reversed, after
+// styling; pipes stay raw.
+func TestHumanOutputBidiRuns(t *testing.T) {
+	s := newSandbox(t, map[string]string{
+		"عربي.md": "# ملاحظة\n\nكلمة budget في سطر عربي\n",
+	})
+	line := "كلمة budget في سطر عربي"
+	want := text.RunsString(text.Visual(line, text.RTL))
+	for _, env := range []map[string]string{{"TERM": "xterm-kitty"}, {"KITTY_WINDOW_ID": "1", "NO_COLOR": "1"}} {
+		out := stripANSI(s.must(0, run{args: []string{"find", "budget"}, stdoutTTY: true, env: env}).stdout)
+		if !strings.Contains(out, want) {
+			t.Errorf("env %v: kitty find lacks %q:\n%s", env, want, out)
+		}
+		if !strings.Contains(out, text.Shape("عربي")+".md") {
+			t.Errorf("env %v: file name not emitted for run reversal:\n%s", env, out)
+		}
+	}
+	out := stripANSI(s.must(0, run{args: []string{"--bidi", "runs", "doctor"}, stdoutTTY: true, env: map[string]string{"LANG": "en_US.UTF-8"}}).stdout)
+	if !strings.Contains(out, "runs") || !strings.Contains(out, "set by --bidi") || !strings.Contains(out, text.Shape("الأسطرلاب")) {
+		t.Errorf("doctor does not report bidi runs or its test line:\n%s", out)
+	}
+	piped := s.must(0, run{args: []string{"--bidi", "runs", "find", "budget"}}).stdout
+	if !strings.Contains(piped, line) {
+		t.Errorf("piped output is not raw:\n%s", piped)
 	}
 }

@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/render"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/render"
 )
 
 var writeHTML = flag.String("html", "", "write the export of examples/vault/Typography.md to this file")

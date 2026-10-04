@@ -148,7 +148,7 @@ func WriteFile(name string, data []byte, expect *StatToken) (StatToken, error) {
 	if fi, err := os.Stat(target); err == nil {
 		mode = fi.Mode().Perm()
 	}
-	tmp, err := os.CreateTemp(dir, ".folio-*.tmp")
+	tmp, err := os.CreateTemp(dir, ".astrolabe-*.tmp")
 	if err != nil {
 		return StatToken{}, err
 	}
@@ -193,7 +193,7 @@ func createExclusive(name string, data []byte) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	tmp, err := os.CreateTemp(dir, ".folio-*.tmp")
+	tmp, err := os.CreateTemp(dir, ".astrolabe-*.tmp")
 	if err != nil {
 		return err
 	}

@@ -4,8 +4,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // globals are the flags accepted before or after any verb (DESIGN.md §4.1).
@@ -90,10 +90,8 @@ func parseGlobals(args []string) (globals, error) {
 			return g, usagef("", "unknown theme %q (themes: %s)", g.theme, strings.Join(theme.Names(), ", "))
 		}
 	}
-	switch strings.ToLower(g.bidi) {
-	case "", "auto", "on", "off":
-	default:
-		return g, usagef("", "--bidi: invalid mode %q (want auto, on or off)", g.bidi)
+	if _, _, err := term.ParseBidi(g.bidi); err != nil {
+		return g, usagef("", "--bidi: %v", err)
 	}
 	return g, nil
 }

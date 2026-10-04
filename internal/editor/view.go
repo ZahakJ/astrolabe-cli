@@ -3,7 +3,7 @@ package editor
 import (
 	"math"
 
-	"github.com/ZahakJ/folio/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
 )
 
 // rowSeg is one display row of a logical line: bytes [start, end), drawn

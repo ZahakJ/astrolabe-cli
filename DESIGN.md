@@ -1,6 +1,6 @@
-# folio — design contract
+# Astrolabe CLI — design contract
 
-`folio` is a terminal Markdown notes tool: a beautiful reader, a small modal
+`astrolabe` is a terminal Markdown notes tool: a beautiful reader, a small modal
 editor, and a set of shell verbs for capture and search, in one static binary
 over a folder of plain `.md` files. This document is normative. Implementers
 build against it; where it is silent, choose what a careful person would and
@@ -9,7 +9,7 @@ note the choice in a code comment.
 ## 1. Principles (in priority order when they conflict)
 
 1. **The files are the product's only state.** No database, no index on disk,
-   no sidecar files in the vault. folio never rewrites a file it was not asked
+   no sidecar files in the vault. Astrolabe CLI never rewrites a file it was not asked
    to edit, and an edit touches only the bytes that changed (line endings,
    trailing newline, frontmatter, BOM and unknown syntax are preserved). All
    writes are atomic (temp file in the same directory + rename), keep the file
@@ -27,7 +27,7 @@ note the choice in a code comment.
 
 ## 2. Implementation constraints
 
-- Go (module `github.com/ZahakJ/folio`, `go 1.22` language level), built with
+- Go (module `github.com/ZahakJ/astrolabe-cli`, `go 1.22` language level), built with
   `CGO_ENABLED=0 -trimpath -ldflags "-s -w -X main.version=…"`: a static binary
   with no libc dependency, so it runs on CentOS 7 era kernels and on macOS.
   Targets: linux/amd64, linux/arm64, darwin/amd64, darwin/arm64.
@@ -37,10 +37,10 @@ note the choice in a code comment.
   width). **Nothing else**: no TUI framework, no Markdown library, no syntax
   highlighting library. Target stripped binary size ≤ 6 MB.
 - No Nerd Font glyphs anywhere. No network access at runtime, ever.
-- Runtime files: optional `$XDG_CONFIG_HOME/folio/config` (read; written only
+- Runtime files: optional `$XDG_CONFIG_HOME/astrolabe-cli/config` (read; written only
   when the user changes theme from inside the TUI) and
-  `$XDG_STATE_HOME/folio/recent` (recent notes + last position; losing it loses
-  nothing), plus `$XDG_STATE_HOME/folio/recovered/` for an unsaved buffer that
+  `$XDG_STATE_HOME/astrolabe-cli/recent` (recent notes + last position; losing it loses
+  nothing), plus `$XDG_STATE_HOME/astrolabe-cli/recovered/` for an unsaved buffer that
   could not be written to its note when the process was signalled. Neither lives in the vault.
 - Tests: `go test ./...` must pass and be fast (< 20 s). Each package has unit
   tests; `internal/render` has golden-file tests.
@@ -51,7 +51,7 @@ note the choice in a code comment.
 ### Package layout and ownership
 
 ```
-cmd/folio/main.go        dispatch only
+cmd/astrolabe/main.go        dispatch only
 internal/term            terminal: capabilities, raw mode, input decoding, cell screen, SGR
 internal/text            width, graphemes, wrapping, bidi reordering, Arabic shaping, fuzzy match
 internal/theme           palettes and semantic style tokens, glyph sets
@@ -70,15 +70,15 @@ install.sh               one-line installer
 ## 3. Vault model
 
 - A vault is a directory tree of `.md` files. Resolution order for the root:
-  `-C DIR`/`--dir`, `$FOLIO_DIR`, config `dir`, the nearest ancestor of the
-  working directory containing `.obsidian/` or `.folio/`, `~/notes` if it
+  `-C DIR`/`--dir`, `$ASTROLABE_DIR`, config `dir`, the nearest ancestor of the
+  working directory containing `.obsidian/` or `.astrolabe/`, `~/notes` if it
   exists, the working directory if it directly contains any `.md`, else
   `~/notes` (created on first write; the first interactive run in a fresh
   `~/notes` writes a short `Welcome.md` that teaches the tool).
-- `folio some/file.md` outside any vault: the vault is the nearest ancestor
-  with `.obsidian/`/`.folio/`, else the file's own directory.
+- `astrolabe some/file.md` outside any vault: the vault is the nearest ancestor
+  with `.obsidian/`/`.astrolabe/`, else the file's own directory.
 - Scan skips dot-directories, `node_modules`, and anything matched by a
-  top-level `.folioignore` (one glob per line). Symlinks to files are followed,
+  top-level `.astrolabeignore` (one glob per line). Symlinks to files are followed,
   directory symlinks are not.
 - **Note identity** is the vault-relative path. The title is the frontmatter
   `title`, else the first H1, else the filename without `.md`.
@@ -124,23 +124,23 @@ block under the reader's cursor; leaving it returns to the same block).
 ### 4.1 Shell verbs
 
 ```
-folio                       open the TUI: today's daily note if it exists, else the last note, else the home screen
-folio NOTE                  open NOTE (path, or a title/basename/alias resolved like a wikilink; fuzzy-unique match accepted)
-folio -                     read Markdown on stdin and page it in the reader
-folio add TEXT…             capture a line to today's daily note   (stdin if no TEXT; -t task; -n NOTE target; --at HEADING)
-folio new TITLE…            create a note (prints its path); -o open in the TUI editor; -e open in $EDITOR; -d DIR; stdin becomes the body
-folio today                 open today's daily note (created if missing); -p print its path instead
-folio find QUERY…           full-text search → path:line:text      (exit 1 when nothing matches; -l paths only; --json)
-folio ls [QUERY]            list notes, most recently modified first (--tag T, --json, -l paths only)
-folio pick [QUERY]          interactive fuzzy picker; prints the chosen path  (exit 130 on cancel) — for `nvim "$(folio pick)"`
-folio tasks                 open tasks grouped Overdue / Today / Upcoming / Undated (--all, --due, --json; exit 1 if none)
-folio tags                  tags with counts
-folio links NOTE            outgoing links;  folio backlinks NOTE   incoming links with context
-folio render [FILE|-]       render Markdown to stdout: ANSI on a terminal, plain text in a pipe (-w COLS, --color=…)
-folio export NOTE           standalone HTML to stdout (-o FILE)
-folio path [NOTE]           print the vault root, or a note's absolute path
-folio doctor                show detected terminal capabilities, vault, config, and a glyph/colour test card
-folio help [VERB]  ·  folio version
+astrolabe                       open the TUI: today's daily note if it exists, else the last note, else the home screen
+astrolabe NOTE                  open NOTE (path, or a title/basename/alias resolved like a wikilink; fuzzy-unique match accepted)
+astrolabe -                     read Markdown on stdin and page it in the reader
+astrolabe add TEXT…             capture a line to today's daily note   (stdin if no TEXT; -t task; -n NOTE target; --at HEADING)
+astrolabe new TITLE…            create a note (prints its path); -o open in the TUI editor; -e open in $EDITOR; -d DIR; stdin becomes the body
+astrolabe today                 open today's daily note (created if missing); -p print its path instead
+astrolabe find QUERY…           full-text search → path:line:text      (exit 1 when nothing matches; -l paths only; --json)
+astrolabe ls [QUERY]            list notes, most recently modified first (--tag T, --json, -l paths only)
+astrolabe pick [QUERY]          interactive fuzzy picker; prints the chosen path  (exit 130 on cancel) — for `nvim "$(astrolabe pick)"`
+astrolabe tasks                 open tasks grouped Overdue / Today / Upcoming / Undated (--all, --due, --json; exit 1 if none)
+astrolabe tags                  tags with counts
+astrolabe links NOTE            outgoing links;  astrolabe backlinks NOTE   incoming links with context
+astrolabe render [FILE|-]       render Markdown to stdout: ANSI on a terminal, plain text in a pipe (-w COLS, --color=…)
+astrolabe export NOTE           standalone HTML to stdout (-o FILE)
+astrolabe path [NOTE]           print the vault root, or a note's absolute path
+astrolabe doctor                show detected terminal capabilities, vault, config, and a glyph/colour test card
+astrolabe help [VERB]  ·  astrolabe version
 ```
 
 Rules: results on stdout, messages on stderr; machine-readable when stdout is
@@ -150,7 +150,7 @@ before or after the verb: `-C DIR`, `--theme NAME`, `--color
 auto|truecolor|256|16|none`, `--ascii`, `--bidi auto|on|off`. `NO_COLOR` is
 honoured. Unknown first argument that resolves to no note → a clear error
 with the nearest matches, exit 1. Unique verb prefixes are not accepted (a
-note may be called `to`); the verbs above are reserved words and `folio
+note may be called `to`); the verbs above are reserved words and `Astrolabe CLI
 ./add.md` opens a file with a reserved name.
 
 ### 4.2 TUI layout
@@ -172,21 +172,21 @@ note may be called `to`); the verbs above are reserved words and `folio
   name and the mode pill. Minimum supported size 40×10; smaller shows a
   single "window too small" line rather than garbage.
 - Status bar: left `✦` + breadcrumb (folders muted and the first to
-  ellipsise, note name last standing), dirty dot `●` in gold when modified;
+  ellipsise, note name last standing), dirty dot `●` in the accent when modified;
   right: words · reading time (reader) or `line:col` (editor), then a mode pill
   `READ` / `NORMAL` / `INSERT` / `VISUAL`. Transient messages replace the left
   side for 3 s. One line for `:` commands and `/` search replaces the bar while
   typing.
 - Overlays (finder, search, palette of leader keys, help, tags, agenda,
   prompts) are centred raised panels with a hairline border, at most 80×24,
-  a one-line input at the top, a selected row marked by a gold left bar on the
+  a one-line input at the top, a selected row marked by an accent left bar on the
   soft-accent ground. `Esc` always closes the topmost overlay.
-- Home screen (no note open): centred `✦`, the line "The vault is open.", the
+- Home screen (no note open): the Astrolabe mark drawn in braille (ASCII with `--ascii`; a single `✦` when the window is too short), the line "The vault is open.", the
   note count, then recent notes and a two-column key legend.
 
 ### 4.3 Keymap (normative)
 
-Reader — a line cursor (a gold `▎` in the left gutter) moves over rendered
+Reader — a line cursor (an accent `▎` in the left gutter) moves over rendered
 lines; actions apply to the block under it.
 
 | Keys | Action |
@@ -342,15 +342,43 @@ editing, task toggling and following links all map back to the file.
   glyphs present in common monospace fonts (DejaVu Sans Mono, Menlo, Consolas
   as the floor) may be used in the Unicode set; nothing from Nerd Fonts, no
   emoji.
-- **Bidirectional text**: most terminals do no bidi. `bidi=on`: folio applies
-  the Unicode bidi algorithm per line (`x/text/unicode/bidi`), mirrors
-  brackets, and shapes Arabic into Presentation Forms-B (isolated / initial /
-  medial / final, lam-alef ligatures, harakat kept on their base cell) so it
-  reads joined and right-to-left in any terminal with the glyphs. `bidi=off`:
-  logical order is emitted untouched, for terminals that implement bidi
-  themselves. `auto` (default) = off when `VTE_VERSION`, `KONSOLE_VERSION`,
-  `TERM_PROGRAM=Apple_Terminal` or `TERM=mlterm*` is set, else on. Piped
-  output is never reordered or shaped.
+- **Bidirectional text**: three behaviours, one per kind of terminal.
+  `bidi=on` (terminals with no bidi, most of them): Astrolabe CLI applies the
+  Unicode bidi algorithm per line (`x/text/unicode/bidi`), mirrors brackets,
+  and shapes Arabic into Presentation Forms-B (isolated / initial / medial /
+  final, lam-alef ligatures, hamza in its isolated form, harakat kept on
+  their base cell) so it reads joined and right-to-left in any terminal with
+  the glyphs. `bidi=runs` (kitty): kitty does no bidi but shapes each run of
+  same-font cells with HarfBuzz and lays out a run whose first real script is
+  Arabic or Hebrew right to left, reversing it in place; Astrolabe CLI emits the line
+  as for `on` but with the text of every such run pre-reversed, so kitty's
+  reversal restores visual order. A terminal run here is a maximal stretch of
+  non-blank cells that are all strong right-to-left letters (or all
+  Arabic-script digits) with the same bold/italic face; only the cells' text
+  moves, styles stay on their cells. The transform (`text.RTLRuns`) is
+  applied last: in `Screen`'s flush on the final composed rows (the diff
+  compares what was emitted), in `Encoder.AppendSpans` for `astrolabe render`,
+  and line by line on the CLI's human output (`term.RunsLine`). Known limit:
+  with a main font that itself has the Arabic forms, kitty folds adjacent
+  punctuation into the run and it may land on the other side of the word.
+  `bidi=off` (terminals that implement bidi): logical order is emitted
+  untouched. `auto` (default): `runs` for kitty (`TERM` containing `kitty`,
+  `KITTY_WINDOW_ID`, `TERM_PROGRAM`/`TERMINAL_EMULATOR=kitty`; a `TERM` that
+  names another terminal overrides inherited kitty variables; inside tmux
+  (`TMUX` set and `TERM` tmux* or screen*, so a `TMUX` inherited by a
+  terminal started from a pane is ignored) the attached client's
+  `#{client_termname}` decides, asked with a 150 ms timeout); `off` when `VTE_VERSION`, `KONSOLE_VERSION`,
+  `TERM_PROGRAM=Apple_Terminal` or `TERM=mlterm*`; else `on`. No terminal
+  query (XTVERSION) is sent: over SSH a late answer would leak into the
+  input. `astrolabe doctor` prints the mode and the reason. Piped output is never
+  reordered or shaped.
+- **Search folding**: every search compares `text.Fold` of the query and the
+  text (NFC, case folding, Arabic harakat/tatweel/controls dropped, alef
+  forms, ى/ي, ة/ه, ؤ/و, ئ/ي, ک/ك, ی/ي unified, presentation forms to letters,
+  Arabic-Indic and Persian digits to ASCII), with an offset map back to the
+  original for highlighting. Fuzzy ranking treats the position after the
+  article and attached particles as a word start. Reordered lines are
+  searched in logical order and matches mapped to their visual cells.
 - **Input**: raw mode; decode CSI/SS3 sequences, kitty/xterm modified keys
   where present, bracketed paste, `Esc` vs Alt with a 25 ms timeout, resize
   (SIGWINCH), suspend (`Ctrl-z`) and resume restoring the screen. Mouse: wheel
@@ -368,41 +396,53 @@ Semantic tokens: `ground`, `raised`, `hover` (soft-accent ground), `text`,
 `muted`, `faint`, `heading`, `accent`, `accentSoft`, `border`, `danger`,
 `ok`, `link`, `code*` (comment, string, number, keyword), callout hues.
 
-- `iron-gall` (default): Astrolabe's brand room — warm near-black ground
+- `onyx` (default): strictly neutral — every ground and ink a pure grey
+  (R=G=B): ground `#111111`, raised `#1a1a1a`, hover `#232323`, text
+  `#e4e4e4`, muted `#9c9c9c`, faint `#686868`, heading `#f6f6f6`. Gold
+  `#d4a72c` is the accent only (mark, bullets, quote bar, chevrons, tag `#`,
+  links, legend keys, selection bar, cursor bar, READ pill, dirty dot);
+  callouts and code use a calm blue, green, teal and red, never purple. A
+  test checks that its greys are grey.
+- `sidereal`: a deep night-sky room — ground `#0b0e17`, raised
+  `#121726`, cool text `#d8def0`, accent violet `#a394ff` (bullets, bars,
+  chevrons, title), links cyan `#6fd3f7`, amber `#ffc777` only for warnings
+  and tasks due today or tomorrow. In 16 colours its accent is magenta and
+  its links cyan.
+- `iron-gall`: Astrolabe's original warm room — warm near-black ground
   `#16130e`, raised `#1e1a13`, ivory text `#eae2d0`, gold-leaf accent
   `#c9a227`, heading a warm gold-cream, borders a brown hairline.
 - `parchment`: the light room — paper `#f2ebda`, ink `#33291a`, accent
   `#7a5f14`.
 - `graphite`: neutral dark `#0d1117`-family ground with the gold accent.
 - `mocha`: matches a Catppuccin-Mocha Neovim/tmux setup (ground `#1e1e2e`,
-  text `#cdd6f4`, accent mauve `#cba6f7`) so folio sits inside rihla.
+  text `#cdd6f4`, accent mauve `#cba6f7`) so Astrolabe CLI sits inside rihla.
 - Body text ≥ 7:1 on ground, muted ≥ 4.5:1, faint ≥ 3:1; a test enforces it.
 
 ## 8. Export
 
-`folio export NOTE` writes one self-contained HTML file (inline CSS, no
+`astrolabe export NOTE` writes one self-contained HTML file (inline CSS, no
 scripts, no external requests) in the manuscript style: serif body, gold
 accents, the same callouts/tables/tasks, `dir="auto"` on blocks, light and
 dark via `prefers-color-scheme`. Wikilinks become relative `.html` links.
-`folio render` covers plain-text and ANSI export.
+`astrolabe render` covers plain-text and ANSI export.
 
 ## 9. Configuration (all optional)
 
-`$XDG_CONFIG_HOME/folio/config`, `key = value` lines, `#` comments:
+`$XDG_CONFIG_HOME/astrolabe-cli/config`, `key = value` lines, `#` comments:
 `dir`, `theme`, `measure` (default 78), `ground` (on/off), `bidi`, `mouse`,
 `daily_dir`, `daily_format`, `editor` (`builtin` | `external`: which one `i`
-opens), `ascii`. Each has an environment override `FOLIO_<KEY>` and most a
-flag. Unknown keys are ignored with one warning from `folio doctor`.
+opens), `ascii`. Each has an environment override `ASTROLABE_<KEY>` and most a
+flag. Unknown keys are ignored with one warning from `astrolabe doctor`.
 
 ## 10. Distribution
 
 - `install.sh`: POSIX sh, no root; detects OS/arch, downloads the release
-  binary with `curl` or `wget` to `${FOLIO_BIN_DIR:-$HOME/.local/bin}/folio`,
+  binary with `curl` or `wget` to `${ASTROLABE_BIN_DIR:-$HOME/.local/bin}/astrolabe`,
   verifies the SHA-256 against the release's `checksums.txt` when a sha tool
   exists, says how to add the directory to `PATH` if it is not there, and
-  supports `FOLIO_VERSION=vX.Y.Z` and an offline mode
-  (`install.sh --from ./folio-linux-amd64`). Re-running upgrades in place.
-- Release assets: `folio-<os>-<arch>` (raw binaries, so a locked-down machine
+  supports `ASTROLABE_VERSION=vX.Y.Z` and an offline mode
+  (`install.sh --from ./astrolabe-linux-amd64`). Re-running upgrades in place.
+- Release assets: `astrolabe-<os>-<arch>` (raw binaries, so a locked-down machine
   can fetch one file with a browser and `chmod +x` it) and `checksums.txt`.
 - CI (GitHub Actions): vet + tests on Linux and macOS; cross-build all four
   targets; run the Linux binary and `install.sh` as a non-root user in

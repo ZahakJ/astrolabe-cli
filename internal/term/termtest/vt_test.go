@@ -3,7 +3,7 @@ package termtest
 import (
 	"testing"
 
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 func TestVTText(t *testing.T) {

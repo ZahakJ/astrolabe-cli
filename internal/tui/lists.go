@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // --- tags ---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ func (o *tagsOverlay) draw(a *app) {
 	count := plural(len(o.rows), "tag", "tags")
 	cw := text.Width(count)
 	s.PutString(in.X+in.W-cw, in.Y, count, a.st.pFaint)
-	cx := o.in.draw(s, x, in.Y, in.X+in.W-cw-1-x, a.st.panel)
+	cx := o.in.draw(s, x, in.Y, in.X+in.W-cw-1-x, a.st.panel, a.bidi)
 	a.panelSeparator(r, in.Y+1)
 	s.SetCursor(cx, in.Y)
 	s.SetCursorShape(term.CursorBar)
@@ -143,7 +143,11 @@ func (o *tagsOverlay) draw(a *app) {
 		row := o.rows[ri]
 		n := itoa(row.tc.Count)
 		x := s.PutString(body.X, y, "#", ac)
-		a.putHighlighted(x, y, row.tc.Tag, st, row.pos, body.X+body.W-len(n)-2)
+		tag, pos := row.tc.Tag, row.pos
+		if a.bidi && text.HasRTL(tag) {
+			tag, pos = text.VisualPositions(tag, pos)
+		}
+		a.putHighlighted(x, y, tag, st, pos, body.X+body.W-len(n)-2)
 		s.PutString(body.X+body.W-len(n), y, n, fa)
 	}
 }
@@ -212,8 +216,8 @@ func (o *noteList) draw(a *app) {
 		if title == "" {
 			title = noteName(n.Path)
 		}
-		title, p = a.dispS(title), a.dispS(p)
-		s.PutStringClip(body.X, y, text.Truncate(title, body.W-pw-2, a.gl.Ellipsis), st, body.X+body.W-pw-2)
+		p = a.dispPath(p)
+		s.PutStringClip(body.X, y, a.dispFit(title, body.W-pw-2), st, body.X+body.W-pw-2)
 		s.PutStringClip(body.X+body.W-pw, y, text.TruncateLeft(p, pw, a.gl.Ellipsis), mu, body.X+body.W)
 	}
 }
@@ -343,7 +347,7 @@ func (o *agenda) draw(a *app) {
 	narrow := a.w < agendaNarrow
 	hint := "x toggles " + a.gl.Dot + " Enter opens"
 	if narrow && len(o.idx) > 0 {
-		hint = text.Truncate(a.dispS(taskTitle(o.rows[o.idx[o.list.sel]].ref)), max(0, in.W-text.Width(head)-2), a.gl.Ellipsis)
+		hint = a.dispFit(taskTitle(o.rows[o.idx[o.list.sel]].ref), max(0, in.W-text.Width(head)-2))
 	}
 	s.PutStringClip(in.X+in.W-text.Width(hint), in.Y, hint, a.st.pFaint, in.X+in.W)
 	a.panelSeparator(r, in.Y+1)
@@ -467,7 +471,7 @@ func (o *agenda) drawTask(a *app, body term.Rect, y int, t vault.TaskRef, sel bo
 	x++
 	rx := maxX - cols.title
 	if cols.title > 0 {
-		s.PutStringClip(rx, y, text.Truncate(a.dispS(taskTitle(t)), cols.title, a.gl.Ellipsis), fa, maxX)
+		s.PutStringClip(rx, y, a.dispFit(taskTitle(t), cols.title), fa, maxX)
 	} else {
 		rx = maxX + 1 // no note column: the due chip ends at the edge
 	}
@@ -494,7 +498,7 @@ func (o *agenda) drawTask(a *app, body term.Rect, y int, t vault.TaskRef, sel bo
 	if cols.narrow && t.Task.Priority > 0 {
 		prio = " " + strings.Repeat("!", min(t.Task.Priority, 3)) // inline, no column
 	}
-	end := s.PutStringClip(x, y, text.Truncate(a.dispS(txt), rx-2-x-len(prio), a.gl.Ellipsis), st, rx-2)
+	end := s.PutStringClip(x, y, a.dispFit(txt, rx-2-x-len(prio)), st, rx-2)
 	if prio != "" {
 		s.PutStringClip(end, y, prio, dg, rx-2)
 	}

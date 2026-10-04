@@ -3,7 +3,7 @@ package editor
 import (
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
 )
 
 // mdTable is a pipe table around the cursor: lines start..end, the second

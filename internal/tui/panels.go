@@ -5,12 +5,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/render"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/render"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // Context panel focus.
@@ -321,7 +321,7 @@ func (a *app) drawContext(r term.Rect, over bool) {
 		case 3:
 			x += 2
 		}
-		s.PutStringClip(x, y, text.Truncate(a.dispS(row.text), inner.X+inner.W-x, a.gl.Ellipsis), st, inner.X+inner.W)
+		s.PutStringClip(x, y, a.dispFit(row.text, inner.X+inner.W-x), st, inner.X+inner.W)
 	}
 }
 

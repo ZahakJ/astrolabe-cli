@@ -62,7 +62,7 @@ func TestScanRules(t *testing.T) {
 		"keep/scratch-not.md":    "# kept",
 		"img/pic.png":            "PNG",
 		"عربي/ملاحظة.md":         "# ملاحظة",
-		".folioignore":           "# comment\nbuild/\n/drafts/**\nscratch.md\n",
+		".astrolabeignore":       "# comment\nbuild/\n/drafts/**\nscratch.md\n",
 		"target/linked.md":       "# Linked",
 		"outside/elsewhere.md":   "# Else",
 		".obsidian/workspace.md": "x",

@@ -32,7 +32,7 @@ type Theme struct {
 	Muted      Color // secondary ink: quotes, properties, folders
 	Faint      Color // tertiary ink: markers, chevrons, rules
 	Heading    Color // H1/H2 ink
-	Accent     Color // gold leaf: bullets, links, cursor bar
+	Accent     Color // bullets, bars, chevrons, cursor bar (gold in onyx)
 	AccentSoft Color // ground for ==highlight== and soft accents
 	Border     Color // hairlines around panels and tables
 	Danger     Color // broken links, overdue, errors
@@ -58,10 +58,16 @@ type Theme struct {
 	Search        Style // search matches
 	SearchCurrent Style // the current search match
 	StatusBar     Style // status bar ground and default ink
-	PillRead      Style // READ mode pill
-	PillNormal    Style // NORMAL mode pill
-	PillInsert    Style // INSERT mode pill
-	PillVisual    Style // VISUAL mode pill
+	// Accent16 and Link16 are the ANSI colours the 16-colour variant uses
+	// for the accent and links (Default = yellow, the classic policy).
+	Accent16, Link16 Color
+	// Title is the ink of a note's title and H1 headings (Default =
+	// Heading).
+	Title      Color
+	PillRead   Style // READ mode pill
+	PillNormal Style // NORMAL mode pill
+	PillInsert Style // INSERT mode pill
+	PillVisual Style // VISUAL mode pill
 }
 
 // Base is the page style: body ink on the ground.
@@ -125,11 +131,18 @@ func CalloutKind(kind string) string {
 }
 
 // Basic16 returns the 16-colour variant of t per DESIGN.md §6: default
-// foreground and background, ANSI yellow as accent, bright black as faint,
-// no painted grounds, and attributes (bold, reverse) doing the work. The
-// result looks right on dark and light terminals alike. It is the same for
-// every theme apart from the name.
+// foreground and background, an ANSI accent (yellow, or the theme's
+// Accent16: magenta for sidereal), bright black as faint, no painted
+// grounds, and attributes (bold, reverse) doing the work. The result looks
+// right on dark and light terminals alike.
 func (t Theme) Basic16() Theme {
+	acc, link := Yellow, Yellow
+	if !t.Accent16.IsDefault() {
+		acc, link = t.Accent16, t.Accent16
+	}
+	if !t.Link16.IsDefault() {
+		link = t.Link16
+	}
 	return Theme{
 		Name:        t.Name,
 		Dark:        t.Dark,
@@ -137,11 +150,11 @@ func (t Theme) Basic16() Theme {
 		Muted:       Default,
 		Faint:       BrightBlack,
 		Heading:     Default,
-		Accent:      Yellow,
+		Accent:      acc,
 		Border:      BrightBlack,
 		Danger:      Red,
 		Ok:          Green,
-		Link:        Yellow,
+		Link:        link,
 		Math:        Cyan,
 		CodeComment: BrightBlack,
 		CodeString:  Green,
@@ -154,12 +167,12 @@ func (t Theme) Basic16() Theme {
 		},
 		Selection:     Style{Attrs: Reverse},
 		CursorLine:    Style{},
-		Highlight:     Style{FG: Yellow, Attrs: Reverse},
-		LinkFocus:     Style{FG: Yellow, Attrs: Reverse},
+		Highlight:     Style{FG: acc, Attrs: Reverse},
+		LinkFocus:     Style{FG: link, Attrs: Reverse},
 		Search:        Style{Attrs: Reverse},
-		SearchCurrent: Style{FG: Yellow, Attrs: Reverse | Bold},
+		SearchCurrent: Style{FG: acc, Attrs: Reverse | Bold},
 		StatusBar:     Style{},
-		PillRead:      Style{FG: Yellow, Attrs: Reverse | Bold},
+		PillRead:      Style{FG: acc, Attrs: Reverse | Bold},
 		PillNormal:    Style{FG: Green, Attrs: Reverse | Bold},
 		PillInsert:    Style{FG: Red, Attrs: Reverse | Bold},
 		PillVisual:    Style{FG: Magenta, Attrs: Reverse | Bold},
@@ -186,6 +199,14 @@ func (t Theme) Mono() Theme {
 	}
 }
 
+// TitleInk returns the ink of titles and H1 headings.
+func (t Theme) TitleInk() Color {
+	if t.Title.IsDefault() {
+		return t.Heading
+	}
+	return t.Title
+}
+
 // WithoutGround returns t with the page ground left to the terminal
 // (config ground=off). Raised surfaces keep their colour.
 func (t Theme) WithoutGround() Theme {
@@ -202,7 +223,7 @@ func register(t Theme) Theme {
 }
 
 // DefaultName is the name of the default theme.
-const DefaultName = "iron-gall"
+const DefaultName = "onyx"
 
 // Lookup returns the theme called name (case-insensitive).
 func Lookup(name string) (Theme, bool) {
@@ -210,7 +231,7 @@ func Lookup(name string) (Theme, bool) {
 	return t, ok
 }
 
-// DefaultTheme returns the default theme, iron-gall.
+// DefaultTheme returns the default theme, onyx.
 func DefaultTheme() Theme { return registry[DefaultName] }
 
 // Names lists the available themes: the default first, then the rest in
@@ -219,7 +240,7 @@ func Names() []string {
 	return append([]string(nil), order...)
 }
 
-var order = []string{"iron-gall", "parchment", "graphite", "mocha"}
+var order = []string{"onyx", "iron-gall", "parchment", "graphite", "mocha", "sidereal"}
 
 // Next returns the name of the theme after name in cycling order.
 func Next(name string) string {

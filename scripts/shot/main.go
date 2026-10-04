@@ -3,14 +3,14 @@
 // is a rectangle and every grapheme is its own absolutely positioned <text>
 // element at its cell's x, so a browser cannot re-flow, kern, re-shape or
 // bidi-reorder anything. Box-drawing hairlines and the partial-block bars
-// folio uses (─ │ ┼ ╭ ▎ …) are drawn as vector shapes so they join cleanly
+// astrolabe uses (─ │ ┼ ╭ ▎ …) are drawn as vector shapes so they join cleanly
 // regardless of the viewer's font. The result sits in a rounded window frame
 // with a subtle title bar, and only uses system font stacks, so it renders
 // the same on GitHub (where SVGs may not load web fonts) as locally.
 //
 // It is normally driven by scripts/shot.sh:
 //
-//	go run ./scripts/shot -in pane.ansi -cols 110 -rows 32 -title folio -svg out.svg
+//	go run ./scripts/shot -in pane.ansi -cols 110 -rows 32 -title astrolabe -svg out.svg
 //
 // Colours: truecolour SGR is used as given; 256-colour indexes 16–255 use
 // the xterm cube and grey ramp; the 16 ANSI colours and the default
@@ -27,8 +27,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/term/termtest"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term/termtest"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // Cell geometry in SVG user units. 0.6 em is the advance of DejaVu Sans

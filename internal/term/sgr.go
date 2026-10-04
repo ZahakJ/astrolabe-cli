@@ -5,8 +5,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 	xterm "golang.org/x/term"
 )
 
@@ -24,6 +24,12 @@ type Encoder struct {
 	StyledUnderline bool
 	// Hyperlinks enables OSC 8 output for Style.Link (see AppendLink).
 	Hyperlinks bool
+	// BidiRuns emits whole lines (Screen rows, AppendSpans) for a terminal
+	// that reverses right-to-left runs itself (DESIGN.md §6, bidi=runs):
+	// the text of each such run is emitted reversed, styles stay on their
+	// cells. Styled and AppendSGR, which see only fragments, ignore it; see
+	// RunsLine for text already serialised.
+	BidiRuns bool
 }
 
 // Downsample reduces st to what the profile can show: in 256 colours RGB
@@ -214,10 +220,13 @@ func (e Encoder) Styled(s string, st theme.Style) string {
 
 // AppendSpans serialises a line of styled spans, emitting SGR only when the
 // style changes and OSC 8 around linked spans, and ending with a reset when
-// anything was styled. It is the pipe/`folio render` counterpart of drawing
+// anything was styled. It is the pipe/`astrolabe render` counterpart of drawing
 // spans on a Screen. With ProfileNone and no links the text is appended
 // unchanged except for attributes.
 func (e Encoder) AppendSpans(dst []byte, spans []text.Span[theme.Style]) []byte {
+	if e.BidiRuns {
+		spans = runsSpans(spans)
+	}
 	var cur theme.Style
 	styled := false
 	link := ""

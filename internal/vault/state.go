@@ -13,13 +13,15 @@ import (
 // MaxRecent caps the recent-notes list.
 const MaxRecent = 200
 
-// StateDir returns $XDG_STATE_HOME/folio, else ~/.local/state/folio.
-// getenv is typically os.Getenv.
+// StateDir returns $XDG_STATE_HOME/astrolabe-cli, else
+// ~/.local/state/astrolabe-cli, or the former name's directory (folio) when
+// only that one exists (see ConfigDir). getenv is typically os.Getenv.
 func StateDir(getenv func(string) string) string {
+	base := filepath.Join(getenv("HOME"), ".local", "state")
 	if d := getenv("XDG_STATE_HOME"); d != "" && filepath.IsAbs(d) {
-		return filepath.Join(d, "folio")
+		base = d
 	}
-	return filepath.Join(getenv("HOME"), ".local", "state", "folio")
+	return legacyDir(base, "astrolabe-cli", "folio")
 }
 
 // RecentFile returns the path of the recent-notes state file.

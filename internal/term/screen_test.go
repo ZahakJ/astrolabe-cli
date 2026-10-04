@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/term/termtest"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/term/termtest"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 var tc = term.Encoder{Profile: term.ProfileTrueColor, StyledUnderline: true, Hyperlinks: true}
@@ -37,12 +37,12 @@ func assertMatches(t *testing.T, s *term.Screen, vt *termtest.VT) {
 func TestScreenBasicFlush(t *testing.T) {
 	s, vt := newPair(20, 4)
 	gold := theme.Style{FG: theme.Hex("#c9a227"), Attrs: theme.Bold}
-	s.PutString(0, 0, "Hello, folio", theme.Style{})
+	s.PutString(0, 0, "Hello, astrolabe", theme.Style{})
 	s.PutString(2, 2, "✦ gold", gold)
 	if err := s.Flush(); err != nil {
 		t.Fatal(err)
 	}
-	if got := vt.String(); got != "Hello, folio\n\n  ✦ gold" {
+	if got := vt.String(); got != "Hello, astrolabe\n\n  ✦ gold" {
 		t.Errorf("screen = %q", got)
 	}
 	if vt.Style(4, 2) != gold {
@@ -310,5 +310,144 @@ func TestPutSpans(t *testing.T) {
 	s.Flush()
 	if got := vt.Row(0); got != " bold plain         " {
 		t.Errorf("row = %q", got)
+	}
+}
+
+// shownByRunTerminal returns row y of vt as a run-reversing terminal
+// (kitty) displays it: the text of every right-to-left run reversed in
+// place. text.ReverseRTLRuns is its own inverse and is checked against a
+// model of kitty in package text.
+func shownByRunTerminal(vt *termtest.VT, w, y int) []text.RunCell {
+	row := make([]text.RunCell, w)
+	for x := 0; x < w; x++ {
+		c := vt.Cell(x, y)
+		row[x].Text = c.Text
+		if c.Width != 1 {
+			row[x].Text = ""
+		}
+		if c.Style.Attrs&theme.Bold != 0 {
+			row[x].Face |= 1
+		}
+		if c.Style.Attrs&theme.Italic != 0 {
+			row[x].Face |= 2
+		}
+	}
+	text.ReverseRTLRuns(row)
+	return row
+}
+
+func assertRunsMatch(t *testing.T, s *term.Screen, vt *termtest.VT) {
+	t.Helper()
+	w, h := s.Size()
+	for y := 0; y < h; y++ {
+		shown := shownByRunTerminal(vt, w, y)
+		for x := 0; x < w; x++ {
+			sc, vc := s.Cell(x, y), vt.Cell(x, y)
+			want := sc.Text
+			if sc.Width != 1 {
+				want = ""
+			}
+			styleOK := sc.Style == vc.Style || sc.Width == 0 // a continuation shows its lead's style
+			if shown[x].Text != want || !styleOK || sc.Width != vc.Width {
+				t.Fatalf("cell (%d,%d): screen %+v, terminal shows %q with %+v\nterminal:\n%s", x, y, sc, shown[x].Text, vc, vt.String())
+			}
+		}
+	}
+}
+
+func TestScreenBidiRuns(t *testing.T) {
+	enc := tc
+	enc.BidiRuns = true
+	vt := termtest.New(24, 3)
+	vt.Write([]byte(term.SeqAltScreenOn + term.SeqAutowrapOff))
+	s := term.NewScreen(vt, 24, 3, enc)
+	word := text.Visual("مرحبا بالعالم", text.RTL) // visual order, shaped
+	s.PutString(1, 0, word, theme.Style{})
+	s.PutString(0, 1, "x "+text.Visual("كتاب", text.RTL)+" 日本", theme.Style{})
+	if err := s.Flush(); err != nil {
+		t.Fatal(err)
+	}
+	// The terminal is sent each word in logical order.
+	if got := vt.String(); !strings.Contains(got, text.Shape("بالعالم")+" "+text.Shape("مرحبا")) {
+		t.Errorf("emitted %q", got)
+	}
+	assertRunsMatch(t, s, vt)
+	// A colour change in mid-word stays on its visual cell.
+	red := theme.Style{FG: theme.Hex("#cc3333")}
+	s.Restyle(term.Rect{X: 2, Y: 0, W: 2, H: 1}, func(theme.Style) theme.Style { return red })
+	s.Flush()
+	assertRunsMatch(t, s, vt)
+	if vt.Style(2, 0) != red || vt.Style(4, 0) == red {
+		t.Error("restyled cells moved")
+	}
+	// Overwriting part of a word changes the whole run's emitted text.
+	s.PutString(3, 0, "…", theme.Style{})
+	s.Flush()
+	assertRunsMatch(t, s, vt)
+}
+
+func TestScreenBidiRunsRandom(t *testing.T) {
+	enc := tc
+	enc.BidiRuns = true
+	const w, h = 30, 4
+	vt := termtest.New(w, h)
+	vt.Write([]byte(term.SeqAltScreenOn + term.SeqAutowrapOff))
+	s := term.NewScreen(vt, w, h, enc)
+	words := []string{"مرحبا", "كتاب", "السلام", "مَرْحَبًا", "שלום", "١٢٣", "hello", "(x)", "#", "…", "日本", " "}
+	styles := []theme.Style{{}, {Attrs: theme.Bold}, {Attrs: theme.Italic}, {FG: theme.Hex("#c9a227")}, {BG: theme.Hex("#202020")}}
+	rng := rand.New(rand.NewSource(3))
+	for frame := 0; frame < 300; frame++ {
+		for k := rng.Intn(4); k >= 0; k-- {
+			wd := words[rng.Intn(len(words))]
+			s.PutString(rng.Intn(w), rng.Intn(h), text.Visual(wd, text.BaseDirection(wd)), styles[rng.Intn(len(styles))])
+		}
+		if rng.Intn(4) == 0 {
+			s.Restyle(term.Rect{X: rng.Intn(w), Y: rng.Intn(h), W: rng.Intn(5) + 1, H: 1}, func(theme.Style) theme.Style {
+				return styles[rng.Intn(len(styles))]
+			})
+		}
+		if err := s.Flush(); err != nil {
+			t.Fatal(err)
+		}
+		assertRunsMatch(t, s, vt)
+	}
+}
+
+func TestAppendSpansBidiRuns(t *testing.T) {
+	enc := term.Encoder{BidiRuns: true}
+	bold := theme.Style{Attrs: theme.Bold}
+	vis := text.Visual("كتاب جميل", text.RTL) // "ﻞﻴﻤﺟ ﺏﺎﺘﻛ"
+	r := []rune(vis)
+	spans := []text.Span[theme.Style]{{Text: string(r[:4]), Style: bold}, {Text: string(r[4:])}}
+	got := string(enc.AppendSpans(nil, spans))
+	want := "\x1b[0;1m" + text.Shape("جميل") + "\x1b[0m " + text.Shape("كتاب")
+	if got != want {
+		t.Errorf("AppendSpans = %q, want %q", got, want)
+	}
+	// Without BidiRuns: unchanged visual order.
+	if got := string(term.Encoder{}.AppendSpans(nil, spans)); !strings.Contains(got, string(r[:4])) {
+		t.Errorf("plain AppendSpans = %q", got)
+	}
+}
+
+func TestRunsLine(t *testing.T) {
+	sh := text.Shape
+	vis := func(s string) string { return text.Visual(s, text.BaseDirection(s)) }
+	tests := []struct{ in, want string }{
+		{"plain", "plain"},
+		{vis("مرحبا بالعالم"), sh("بالعالم") + " " + sh("مرحبا")},
+		// Colour in mid-word: the escape stays before the same cell.
+		{"\x1b[0;38;2;1;2;3m" + string([]rune(vis("كتاب"))[:2]) + "\x1b[0m" + string([]rune(vis("كتاب"))[2:]) + ".",
+			"\x1b[0;38;2;1;2;3m" + string([]rune(sh("كتاب"))[:2]) + "\x1b[0m" + string([]rune(sh("كتاب"))[2:]) + "."},
+		// Bold ends a run; 38;2;1;… is a colour, not bold.
+		{"\x1b[1m" + string([]rune(vis("كتاب"))[:2]) + "\x1b[22m" + string([]rune(vis("كتاب"))[2:]),
+			"\x1b[1m" + string([]rune(vis("كتاب"))[1]) + string([]rune(vis("كتاب"))[0]) + "\x1b[22m" + string([]rune(vis("كتاب"))[3]) + string([]rune(vis("كتاب"))[2])},
+		// OSC 8 links and harakat.
+		{"\x1b]8;;file:///x\x1b\\" + vis("مَرْحَبًا") + "\x1b]8;;\x1b\\ 12", "\x1b]8;;file:///x\x1b\\" + sh("مَرْحَبًا") + "\x1b]8;;\x1b\\ 12"},
+	}
+	for _, tt := range tests {
+		if got := term.RunsLine(tt.in); got != tt.want {
+			t.Errorf("RunsLine(%q)\n = %q\nwant %q", tt.in, got, tt.want)
+		}
 	}
 }

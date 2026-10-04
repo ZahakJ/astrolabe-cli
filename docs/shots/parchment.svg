@@ -20,7 +20,7 @@ text{font-family:'SF Mono', ui-monospace, Menlo, Consolas, 'DejaVu Sans Mono', '
 <circle cx="18" cy="15.5" r="5.5" fill="#b8b3a6"/>
 <circle cx="36" cy="15.5" r="5.5" fill="#b8b3a6"/>
 <circle cx="54" cy="15.5" r="5.5" fill="#b8b3a6"/>
-<text x="476" y="19.8" text-anchor="middle" style="font-family:-apple-system,'Segoe UI',system-ui,'DejaVu Sans',sans-serif;font-size:12.5px;fill:#6d6a62;direction:ltr">folio</text>
+<text x="476" y="19.8" text-anchor="middle" style="font-family:-apple-system,'Segoe UI',system-ui,'DejaVu Sans',sans-serif;font-size:12.5px;fill:#6d6a62;direction:ltr">astrolabe</text>
 <g shape-rendering="crispEdges">
 <rect x="148.4" y="180" width="655.5" height="18.3" fill="#ebe3cf"/>
 <rect x="644" y="216" width="151.5" height="18.3" fill="#ead796"/>

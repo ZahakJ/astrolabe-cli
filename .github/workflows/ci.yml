@@ -41,7 +41,7 @@ jobs:
       - name: binary sizes (target ≤ 6 MiB, DESIGN.md §2)
         run: |
           ls -l dist/
-          for f in dist/folio-*; do
+          for f in dist/astrolabe-*; do
             size=$(wc -c <"$f")
             if [ "$size" -gt 6291456 ]; then
               echo "::error::$f is $size bytes, over the 6 MiB budget"
@@ -82,13 +82,13 @@ jobs:
       - name: smoke test as uid 1000
         run: |
           mkdir -p "$RUNNER_TEMP/mirror"
-          cp dist/folio-* dist/checksums.txt install.sh "$RUNNER_TEMP/mirror/"
+          cp dist/astrolabe-* dist/checksums.txt install.sh "$RUNNER_TEMP/mirror/"
           python3 -m http.server 8765 --bind 127.0.0.1 --directory "$RUNNER_TEMP/mirror" >/dev/null 2>&1 &
           server=$!
           trap 'kill "$server"' EXIT
           sleep 1
           docker run --rm --network host --user 1000:1000 -e HOME=/tmp/home \
-            -e FOLIO_SMOKE_URL=http://127.0.0.1:8765 \
+            -e ASTROLABE_SMOKE_URL=http://127.0.0.1:8765 \
             -v "$PWD:/src:ro" "${{ matrix.image }}" sh /src/scripts/ci-smoke.sh
 
   release:
@@ -110,8 +110,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" dist/folio-* dist/checksums.txt --clobber
+            gh release upload "$GITHUB_REF_NAME" dist/astrolabe-* dist/checksums.txt --clobber
           else
-            gh release create "$GITHUB_REF_NAME" dist/folio-* dist/checksums.txt \
-              --title "folio $GITHUB_REF_NAME" --generate-notes --verify-tag
+            gh release create "$GITHUB_REF_NAME" dist/astrolabe-* dist/checksums.txt \
+              --title "astrolabe $GITHUB_REF_NAME" --generate-notes --verify-tag
           fi

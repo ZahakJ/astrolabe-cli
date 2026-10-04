@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 var ansiRE = regexp.MustCompile(`\x1b\[[0-9;:?]*[A-Za-z]|\x1b\]8;[^\x1b]*\x1b\\`)

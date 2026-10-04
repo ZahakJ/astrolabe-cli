@@ -1,11 +1,11 @@
 #!/bin/sh
-# shot.sh — capture folio (or any command) in a private tmux server as text,
+# shot.sh — capture astrolabe (or any command) in a private tmux server as text,
 # SVG and PNG.
 #
 #   scripts/shot.sh [options] NAME [STEP...]
 #
 # Starts the command in a detached pane of a private tmux server
-# (`tmux -L folio-shot`, never your own), runs the scripted STEPs, then saves
+# (`tmux -L astrolabe-shot`, never your own), runs the scripted STEPs, then saves
 #   OUT/NAME.txt   the pane as plain text
 #   OUT/NAME.ansi  the pane with SGR attributes (capture-pane -e)
 #   OUT/NAME.svg   a cell-exact SVG (scripts/shot), framed like a window
@@ -19,15 +19,15 @@
 # Options
 #   -s COLSxROWS  pane size (default 110x32)
 #   -e VAR=VALUE  environment for the command (repeatable; VAR= unsets)
-#   -c COMMAND    command line to run (default: folio -C examples/vault);
-#                 the word "folio" may be used, it is the freshly built binary
+#   -c COMMAND    command line to run (default: astrolabe -C examples/vault);
+#                 the word "astrolabe" may be used, it is the freshly built binary
 #   -d DIR        working directory for the command (default: repo root)
 #   -o DIR        output directory (default: docs/shots)
-#   -t TITLE      window title in the SVG frame (default: folio)
+#   -t TITLE      window title in the SVG frame (default: astrolabe)
 #   -w SECONDS    wait before the first step (default: 0.8)
 #   -C            draw the terminal cursor in the SVG
 #   -l            light default terminal colours (for TERM=xterm captures)
-#   -k            keep the tmux server afterwards (attach: tmux -L folio-shot a)
+#   -k            keep the tmux server afterwards (attach: tmux -L astrolabe-shot a)
 #   -n            no PNG
 #
 # Steps (run in order, 0.15 s apart)
@@ -40,7 +40,7 @@
 #   snap:SUFFIX    write an intermediate capture NAME-SUFFIX.{txt,ansi,svg,png}
 #   sh:COMMAND     run a host shell command (e.g. to modify a file meanwhile)
 #
-# Environment: FOLIO_BIN uses an existing binary instead of building one;
+# Environment: ASTROLABE_BIN uses an existing binary instead of building one;
 # SHOT_SOCKET overrides the tmux socket name; TMPDIR is honoured.
 #
 # Example:
@@ -50,7 +50,7 @@ set -eu
 repo=$(cd "$(dirname "$0")/.." && pwd)
 size=110x32
 out="$repo/docs/shots"
-title=folio
+title=astrolabe
 wait=0.8
 dir=$repo
 cmd=
@@ -59,7 +59,7 @@ light=
 cursor=0
 png=1
 envs=
-socket=${SHOT_SOCKET:-folio-shot}
+socket=${SHOT_SOCKET:-astrolabe-shot}
 
 usage() { sed -n '2,46p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-2}"; }
 
@@ -98,7 +98,7 @@ rows=${size#*x}
 case $cols$rows in *[!0-9]*|'') echo "shot: bad size $size" >&2; exit 2 ;; esac
 
 command -v tmux >/dev/null || { echo "shot: tmux is required" >&2; exit 1; }
-work=$(mktemp -d "${TMPDIR:-/tmp}/folio-shot.XXXXXX")
+work=$(mktemp -d "${TMPDIR:-/tmp}/astrolabe-shot.XXXXXX")
 mkdir -p "$out" "$work/home" "$work/config" "$work/state"
 
 T() { tmux -L "$socket" -f /dev/null "$@"; }
@@ -107,7 +107,7 @@ cleanup() {
 	if [ "$keep" = 0 ]; then
 		T kill-server 2>/dev/null || true
 	fi
-	# folio may still be writing its state on the way out (SIGHUP saves),
+	# astrolabe may still be writing its state on the way out (SIGHUP saves),
 	# so retry briefly instead of failing on a directory that just filled.
 	i=0
 	until rm -rf "$work" 2>/dev/null || [ $i -ge 20 ]; do
@@ -117,18 +117,18 @@ cleanup() {
 }
 trap cleanup EXIT INT TERM
 
-if [ -n "${FOLIO_BIN:-}" ]; then
-	bin=$FOLIO_BIN
+if [ -n "${ASTROLABE_BIN:-}" ]; then
+	bin=$ASTROLABE_BIN
 else
-	bin=$work/folio
-	(cd "$repo" && CGO_ENABLED=0 go build -o "$bin" ./cmd/folio)
+	bin=$work/astrolabe
+	(cd "$repo" && CGO_ENABLED=0 go build -o "$bin" ./cmd/astrolabe)
 fi
 svgtool=$work/shotsvg
 (cd "$repo" && go build -o "$svgtool" ./scripts/shot)
 mkdir -p "$work/bin"
-ln -s "$bin" "$work/bin/folio"
+ln -s "$bin" "$work/bin/astrolabe"
 
-[ -n "$cmd" ] || cmd="folio -C '$repo/examples/vault'"
+[ -n "$cmd" ] || cmd="astrolabe -C '$repo/examples/vault'"
 
 # The pane's environment: clean, then -e overrides (VAR= unsets).
 envfile=$work/env

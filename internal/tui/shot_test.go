@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ZahakJ/folio/internal/term/termtest"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term/termtest"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // Screenshots for looking at the TUI by eye (not run by default):

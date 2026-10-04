@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // painter styles human output. When off (stdout is not a terminal) every
@@ -17,7 +17,7 @@ import (
 //
 // CLI output is printed into the user's own terminal, so the painter only
 // sets foreground colours and attributes and never paints a ground: the
-// themes' grounds belong to the TUI and to `folio render`.
+// themes' grounds belong to the TUI and to `astrolabe render`.
 type painter struct {
 	on    bool
 	enc   term.Encoder
@@ -103,7 +103,7 @@ func (p *painter) visualPath(s string) string {
 	if !p.human || !p.bidi || !text.HasRTL(s) {
 		return s
 	}
-	return text.Visual(s, text.LTR)
+	return text.VisualPath(s)
 }
 
 // clean shows one raw source line (a task's text) as the reader would:

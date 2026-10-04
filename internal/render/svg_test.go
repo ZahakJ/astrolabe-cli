@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 var showSVG = flag.String("svg", "", "with -show: also write the rendering as an SVG picture to this path")

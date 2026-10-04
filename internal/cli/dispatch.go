@@ -9,9 +9,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // verbFunc runs a verb with its arguments (global flags already removed).
@@ -77,7 +78,7 @@ func (a *app) run() int {
 	}
 	first := rest[0]
 	if first == "--" {
-		// "folio -- add" opens a note called add.
+		// "astrolabe -- add" opens a note called add.
 		if len(rest) == 1 {
 			return a.finish(a.openDefault())
 		}
@@ -118,7 +119,7 @@ func (a *app) config() *vault.Config {
 	cfg, err := vault.LoadConfig(vault.ConfigFile(a.getenv), a.getenv)
 	if err != nil || cfg == nil {
 		// An unreadable config must not stop the tool (principle 2);
-		// `folio doctor` reports it.
+		// `astrolabe doctor` reports it.
 		cfg, _ = vault.LoadConfig("", a.getenv)
 		if cfg == nil {
 			cfg = &vault.Config{}
@@ -139,7 +140,7 @@ func (a *app) resolveRoot() (vault.Root, error) {
 	}
 	r, err := vault.ResolveRoot(vault.RootInputs{
 		Flag:   a.g.dir,
-		Env:    a.getenv("FOLIO_DIR"),
+		Env:    firstNonEmpty(a.getenv("ASTROLABE_DIR"), a.getenv("FOLIO_DIR")), // FOLIO_DIR: the former name
 		Config: cfgDir,
 		Cwd:    a.env.Cwd,
 		Home:   a.env.Home,
@@ -296,8 +297,25 @@ func (a *app) styledStdout() bool {
 // dumbTerm reports TERM=dumb.
 func (a *app) dumbTerm() bool { return a.getenv("TERM") == "dumb" }
 
-// out writes to stdout.
+// out writes human or machine output to stdout. Human lines are in visual
+// order (painter.visual); on a terminal that reverses right-to-left runs
+// itself (bidi=runs) each line is passed through term.RunsLine, the last
+// step before the terminal, after all styling.
 func (a *app) out(format string, args ...any) {
+	s := fmt.Sprintf(format, args...)
+	if a.human() && text.MayHaveRTLRuns(s) && a.display().Caps.Encoder().BidiRuns {
+		lines := strings.Split(s, "\n")
+		for i, l := range lines {
+			lines[i] = term.RunsLine(l)
+		}
+		s = strings.Join(lines, "\n")
+	}
+	io.WriteString(a.env.Stdout, s)
+}
+
+// raw writes to stdout untransformed: paths printed for scripts and
+// copying, in logical order even on a terminal.
+func (a *app) raw(format string, args ...any) {
 	fmt.Fprintf(a.env.Stdout, format, args...)
 }
 
@@ -361,6 +379,6 @@ func (a *app) cmdVersion(args []string) error {
 	if v == "" {
 		v = "dev"
 	}
-	a.out("folio %s (%s/%s, %s)\n", v, runtime.GOOS, runtime.GOARCH, runtime.Version())
+	a.out("astrolabe %s (%s/%s, %s)\n", v, runtime.GOOS, runtime.GOARCH, runtime.Version())
 	return nil
 }

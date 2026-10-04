@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 type taskJSON struct {
@@ -39,7 +39,7 @@ func taskStatus(t vault.Task) string {
 	return "other"
 }
 
-// cmdTasks is `folio tasks`: open tasks grouped Overdue / Today / Upcoming /
+// cmdTasks is `astrolabe tasks`: open tasks grouped Overdue / Today / Upcoming /
 // Undated.
 func (a *app) cmdTasks(args []string) error {
 	fs := newFlagSet("tasks")
@@ -233,7 +233,7 @@ func dueLabel(d, today vault.Date) string {
 	return t.Format("2 Jan 2006")
 }
 
-// cmdTags is `folio tags`: tags with counts.
+// cmdTags is `astrolabe tags`: tags with counts.
 func (a *app) cmdTags(args []string) error {
 	fs := newFlagSet("tags")
 	asJSON := fs.Bool("", "--json")
@@ -243,7 +243,7 @@ func (a *app) cmdTags(args []string) error {
 		return err
 	}
 	if len(pos) > 0 {
-		return usagef("tags", "unexpected argument %q (to list a tag's notes: folio ls --tag %s)", pos[0], strings.TrimPrefix(pos[0], "#"))
+		return usagef("tags", "unexpected argument %q (to list a tag's notes: astrolabe ls --tag %s)", pos[0], strings.TrimPrefix(pos[0], "#"))
 	}
 	v, err := a.vault()
 	if err != nil {

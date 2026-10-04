@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
 )
 
 // The reader keymap of DESIGN.md §4.3 is one table: the dispatcher looks

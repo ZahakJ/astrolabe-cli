@@ -7,7 +7,7 @@ import (
 // verbDoc is the manual of one verb. On a locked-down machine the help is
 // the manual, so each entry is short, complete and led by examples.
 type verbDoc struct {
-	usage   string // one line, without "folio "
+	usage   string // one line, without "astrolabe "
 	summary string // one line
 	body    string // options, examples, output; may be empty
 }
@@ -26,10 +26,10 @@ Options
   --at HEADING        insert at the end of that section (added if missing)
 
 Examples
-  folio add "call the plumber about the boiler"
-  folio add -t "renew passport due:2026-11-02 !!"
-  folio add -n Inbox --at Reading "The Quiet Machine, part II"
-  pbpaste | folio add                # capture the clipboard
+  astrolabe add "call the plumber about the boiler"
+  astrolabe add -t "renew passport due:2026-11-02 !!"
+  astrolabe add -n Inbox --at Reading "The Quiet Machine, part II"
+  pbpaste | astrolabe add                # capture the clipboard
 
 Output
   The note and line written: "Added to daily/2026-10-04.md:12" in a
@@ -44,14 +44,14 @@ overwritten: "Title 2.md" is created instead. Piped stdin becomes the body.
 
 Options
   -e, --edit          open the new note in $VISUAL / $EDITOR (default vi)
-  -o, --open          open it in folio's built-in editor
+  -o, --open          open it in astrolabe's built-in editor
   -d, --dir DIR       create it in DIR, a folder of the vault
 
 Examples
-  folio new "Lantern retro"
-  folio new -d meetings -e "Platform sync 2026-10-05"
-  git log --oneline -20 | folio new "Release notes draft"
-  nvim "$(folio new 'Scratch')"
+  astrolabe new "Lantern retro"
+  astrolabe new -d meetings -e "Platform sync 2026-10-05"
+  git log --oneline -20 | astrolabe new "Release notes draft"
+  nvim "$(astrolabe new 'Scratch')"
 
 Output
   The note's absolute path.`,
@@ -67,8 +67,8 @@ Options
   -p, --print         print its absolute path instead of opening it
 
 Examples
-  folio today
-  vim "$(folio today -p)"`,
+  astrolabe today
+  vim "$(astrolabe today -p)"`,
 	},
 	"find": {
 		usage:   "find [-l] [--json] [-n N] QUERY…",
@@ -88,10 +88,10 @@ Options
   --json              an array of {path, abs, title, line, text, matches, kind}
 
 Examples
-  folio find cutover
-  folio find 'tag:runbook "connection pool"'
-  folio find 're:TODO|FIXME' path:projects
-  vim -q <(folio find deploy)           # load the hits into the quickfix list
+  astrolabe find cutover
+  astrolabe find 'tag:runbook "connection pool"'
+  astrolabe find 're:TODO|FIXME' path:projects
+  vim -q <(astrolabe find deploy)       # load the hits into the quickfix list
 
 Output
   Grouped and highlighted in a terminal; "path:line:text" in a pipe.
@@ -111,10 +111,10 @@ Options
                       words, size}
 
 Examples
-  folio ls
-  folio ls -n 5
-  folio ls --tag meeting
-  folio ls -l lantern | tr '\n' '\0' | xargs -0 grep -l rollback
+  astrolabe ls
+  astrolabe ls -n 5
+  astrolabe ls --tag meeting
+  astrolabe ls -l lantern | tr '\n' '\0' | xargs -0 grep -l rollback
 
 Output
   Aligned columns in a terminal; "path<TAB>YYYY-MM-DD HH:MM<TAB>title" in a
@@ -127,8 +127,8 @@ Output
 Esc cancels with exit status 130 and prints nothing.
 
 Examples
-  nvim "$(folio pick)"
-  wc -w "$(folio pick meet)"`,
+  nvim "$(astrolabe pick)"
+  wc -w "$(astrolabe pick meet)"`,
 	},
 	"tasks": {
 		usage:   "tasks [--all] [--due] [--json]",
@@ -145,8 +145,8 @@ Options
                       text, raw, due, priority, group}
 
 Examples
-  folio tasks
-  folio tasks --due --json | jq -r '.[] | select(.group=="overdue") | .text'
+  astrolabe tasks
+  astrolabe tasks --due --json | jq -r '.[] | select(.group=="overdue") | .text'
 
 Output
   Grouped with due chips in a terminal; "path:line:[ ] text due:DATE" in a
@@ -163,8 +163,8 @@ Options
   --json              an array of {tag, count}
 
 Examples
-  folio tags
-  folio ls --tag "$(folio tags -c | head -1 | cut -f1)"
+  astrolabe tags
+  astrolabe ls --tag "$(astrolabe tags -c | head -1 | cut -f1)"
 
 Output
   An indented tree in a terminal; "tag<TAB>count" in a pipe.`,
@@ -181,8 +181,9 @@ Options
                       label, embed, broken, path, abs, to_line}
 
 Examples
-  folio links "Lantern migration"
-  folio links -l Inbox | while IFS= read -r f; do folio render "$f"; done
+  astrolabe links "Lantern migration"
+  astrolabe links -l Inbox |
+    while IFS= read -r f; do astrolabe render "$f"; done
 
 Output
   "line<TAB>kind<TAB>destination" in a pipe; kind is wikilink, markdown,
@@ -196,8 +197,8 @@ Output
   --json              an array of {path, abs, title, line, col, kind, context}
 
 Examples
-  folio backlinks "Lantern migration"
-  folio backlinks -l Inbox
+  astrolabe backlinks "Lantern migration"
+  astrolabe backlinks -l Inbox
 
 Output
   Grouped by note in a terminal; "path:line:context" in a pipe.`,
@@ -212,9 +213,9 @@ Options
   -w, --width COLS    wrap to COLS (default: the terminal width, else 80)
 
 Examples
-  folio render README.md
-  folio render "Lantern migration" | less -R
-  curl -s https://example.org/notes.md | folio render --color=256`,
+  astrolabe render README.md
+  astrolabe render "Lantern migration" | less -R
+  curl -s https://example.org/notes.md | astrolabe render --color=256`,
 	},
 	"export": {
 		usage:   "export [-o FILE] NOTE",
@@ -226,30 +227,30 @@ Options
   -o, --output FILE   write FILE instead of stdout
 
 Examples
-  folio export "Lantern migration" -o lantern.html`,
+  astrolabe export "Lantern migration" -o lantern.html`,
 	},
 	"path": {
 		usage:   "path [NOTE]",
 		summary: "Print the vault root, or a note's absolute path.",
 		body: `Examples
-  cd "$(folio path)"
-  folio path Inbox
-  folio -C ~/work-notes path`,
+  cd "$(astrolabe path)"
+  astrolabe path Inbox
+  astrolabe -C ~/work-notes path`,
 	},
 	"doctor": {
 		usage:   "doctor",
 		summary: "Show terminal capabilities, vault, config and a test card.",
-		body: `Use it when something looks wrong: it shows what folio detected (colour
+		body: `Use it when something looks wrong: it shows what astrolabe detected (colour
 depth, glyphs, bidi, hyperlinks, clipboard), which vault it chose and why,
 the config file and any unknown keys, and a card of colours and glyphs.
 
 Examples
-  folio doctor
-  folio doctor --color 16 --ascii`,
+  astrolabe doctor
+  astrolabe doctor --color 16 --ascii`,
 	},
 	"help": {
 		usage:   "help [VERB]",
-		summary: "Show help for folio or one verb.",
+		summary: "Show help for astrolabe or one verb.",
 	},
 	"version": {
 		usage:   "version",
@@ -257,21 +258,22 @@ Examples
 	},
 }
 
-// usageLine returns "folio <usage>" for a verb, "" for none.
+// usageLine returns "astrolabe <usage>" for a verb, "" for none.
 func usageLine(verb string) string {
 	if d, ok := docs[verb]; ok {
-		return "folio " + d.usage
+		return "astrolabe " + d.usage
 	}
 	return ""
 }
 
-const overview = `folio — Markdown notes in the terminal: a reader, an editor and shell verbs
-over a folder of plain .md files.
+const overview = `astrolabe — Astrolabe for the terminal: your Markdown notes, beautifully, in one
+static binary. A reader, an editor and shell verbs over a folder of plain .md
+files; the terminal companion of the Astrolabe web app. Short alias: ast.
 
 Open
-  folio                 today's daily note, else the last note, else home
-  folio NOTE            a note by path, title, alias or unique fuzzy match
-  folio -               page Markdown from stdin
+  astrolabe             today's daily note, else the last note, else home
+  astrolabe NOTE        a note by path, title, alias or unique fuzzy match
+  astrolabe -           page Markdown from stdin
 
 Capture
   add TEXT…             add a line to today's daily note  (-t task, -n NOTE)
@@ -298,27 +300,29 @@ Other
   version               print the version
 
 Global flags, before or after the verb
-  -C, --dir DIR         the vault folder (default: $FOLIO_DIR, config "dir",
-                        the nearest folder with .obsidian/ or .folio/,
+  -C, --dir DIR         the vault folder (default: $ASTROLABE_DIR, config "dir",
+                        the nearest folder with .obsidian/ or .astrolabe/,
                         ~/notes, or the current folder if it holds notes)
-  --theme NAME          iron-gall, parchment, graphite or mocha
+  --theme NAME          onyx (default), iron-gall, parchment, graphite,
+                        mocha or sidereal
   --color MODE          auto, truecolor, 256, 16 or none (NO_COLOR is honoured)
   --ascii               ASCII glyphs only
-  --bidi MODE           auto, on or off: let folio lay out right-to-left text
+  --bidi MODE           auto, on, off or runs: how right-to-left text is laid
+                        out (runs: for kitty, which reverses RTL runs itself)
 
 Examples
-  folio add "call the plumber"          # one line into today's note
-  folio add -t "renew passport due:2026-11-02"
-  folio find 'tag:work cutover'         # grep-like, across the vault
-  nvim "$(folio pick)"                  # choose a note, edit it elsewhere
-  folio ./add.md                        # a note whose name is a verb
+  astrolabe add "call the plumber"          # one line into today's note
+  astrolabe add -t "renew passport due:2026-11-02"
+  astrolabe find 'tag:work cutover'         # grep-like, across the vault
+  nvim "$(astrolabe pick)"                  # choose a note, edit it elsewhere
+  astrolabe ./add.md                        # a note whose name is a verb
 
 In a pipe, output is plain and stable (path:line:text, tab-separated
 columns, --json); paths are relative to the current folder inside the vault,
 absolute outside it. Exit status: 0 ok, 1 nothing found, 2 usage error,
-130 cancelled. Config: ~/.config/folio/config (see 'folio doctor').`
+130 cancelled. Config: ~/.config/astrolabe-cli/config (see 'astrolabe doctor').`
 
-// cmdHelp is `folio help [VERB]`.
+// cmdHelp is `astrolabe help [VERB]`.
 func (a *app) cmdHelp(args []string) error {
 	if len(args) > 1 {
 		return usagef("help", "help takes one verb")
@@ -335,7 +339,7 @@ func (a *app) cmdHelp(args []string) error {
 			}
 			return usagef("help", "%s", msg)
 		}
-		txt = "folio " + d.usage + "\n\n" + d.summary
+		txt = "astrolabe " + d.usage + "\n\n" + d.summary
 		if d.body != "" {
 			txt += "\n\n" + d.body
 		}

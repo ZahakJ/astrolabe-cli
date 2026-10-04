@@ -23,7 +23,7 @@ func TestShape(t *testing.T) {
 		{"lam fatha alef keeps mark", "لَا", "ﻻَ"},
 		{"shadda on medial", "محمّد", "ﻣﺤﻤّﺪ"},
 		{"single letter isolated", "ب", "ﺏ"},
-		{"hamza is non-joining", "ماء", "ﻣﺎء"},
+		{"hamza is non-joining: isolated form", "ماء", "ﻣﺎ\uFE80"},
 		{"tatweel joins after", "بـ", "ﺑـ"},
 		{"tatweel joins before", "ـب", "ـﺐ"},
 		{"tatweel between", "بـب", "ﺑـﺐ"},

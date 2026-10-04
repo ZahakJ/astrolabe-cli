@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
 )
 
 const sampleNote = "---\ntitle: Sample\ntags: [a, b]\n---\n# Heading\n\nSome *text* with **bold**, `code` and [[Link|label]].\n" +

@@ -6,13 +6,13 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
-// cmdDoctor is `folio doctor`: what folio detected, which vault and config
+// cmdDoctor is `astrolabe doctor`: what astrolabe detected, which vault and config
 // it uses, and a glyph/colour test card. It always exits 0 unless the
 // command line is wrong; problems are reported as warnings.
 func (a *app) cmdDoctor(args []string) error {
@@ -45,7 +45,7 @@ func (a *app) cmdDoctor(args []string) error {
 	if v == "" {
 		v = "dev"
 	}
-	a.out("%s %s  %s\n", p.accent(p.g.Brand), p.heading("folio doctor"),
+	a.out("%s %s  %s\n", p.accent(p.g.Brand), p.heading("astrolabe doctor"),
 		p.faint(fmt.Sprintf("%s %s %s/%s", v, p.g.Dot, runtime.GOOS, runtime.GOARCH)))
 
 	// Terminal.
@@ -102,13 +102,19 @@ func (a *app) cmdDoctor(args []string) error {
 	}
 	row("glyphs", glyphs)
 	if !c.UTF8 && !d.Term.ASCII {
-		warnings = append(warnings, "the locale is not UTF-8, so folio uses ASCII glyphs (set LANG=en_US.UTF-8 or similar for the Unicode set)")
+		warnings = append(warnings, "the locale is not UTF-8, so astrolabe uses ASCII glyphs (set LANG=en_US.UTF-8 or similar for the Unicode set)")
 	}
-	bidi := "off  " + p.faint("the terminal lays out right-to-left text itself")
-	if c.Bidi {
-		bidi = "on  " + p.faint("folio reorders and shapes right-to-left text")
+	var bidi string
+	switch c.BidiMode {
+	case term.BidiOff:
+		bidi = "off  " + p.faint("the terminal lays out right-to-left text itself")
+	case term.BidiRuns:
+		bidi = "runs  " + p.faint("astrolabe reorders and shapes; the terminal reverses each right-to-left run back")
+	default:
+		bidi = "on  " + p.faint("astrolabe reorders and shapes right-to-left text")
 	}
 	row("bidi", bidi)
+	row("", p.faint(c.BidiWhy))
 	row("hyperlinks", yes(c.Hyperlinks)+p.faint("  OSC 8"))
 	row("clipboard", yes(c.Clipboard)+p.faint("  OSC 52"))
 	if c.Tmux {
@@ -164,8 +170,8 @@ func (a *app) cmdDoctor(args []string) error {
 				folder = "."
 			}
 			row("daily notes", fmt.Sprintf("%s/%s.md  %s", folder, dc.Format, p.faint("today: "+daily+", "+state)))
-			if fileExists(vv.Abs(".folioignore")) {
-				row(".folioignore", "present")
+			if fileExists(vv.Abs(".astrolabeignore")) {
+				row(".astrolabeignore", "present")
 			}
 		}
 	}
@@ -187,8 +193,8 @@ func (a *app) cmdDoctor(args []string) error {
 		for _, k := range vault.ConfigKeys {
 			if val, ok := cfg.Get(k); ok {
 				src := ""
-				if a.getenv("FOLIO_"+strings.ToUpper(k)) != "" {
-					src = "  " + p.faint("from FOLIO_"+strings.ToUpper(k))
+				if a.getenv("ASTROLABE_"+strings.ToUpper(k)) != "" {
+					src = "  " + p.faint("from ASTROLABE_"+strings.ToUpper(k))
 				}
 				row(k, val+src)
 			}
@@ -219,7 +225,7 @@ func (a *app) cmdDoctor(args []string) error {
 	recent := len(vault.LoadRecent(rf).Entries())
 	row("recent notes", rf+"  "+p.faint(plural(recent, "entry", "entries")))
 	if rec := vault.RecoveredFiles(vault.RecoveredDir(a.getenv)); len(rec) > 0 {
-		row("recovered", vault.RecoveredDir(a.getenv)+"  "+p.faint(plural(len(rec), "unsaved buffer", "unsaved buffers")+" kept when folio was terminated mid-edit"))
+		row("recovered", vault.RecoveredDir(a.getenv)+"  "+p.faint(plural(len(rec), "unsaved buffer", "unsaved buffers")+" kept when astrolabe was terminated mid-edit"))
 	}
 
 	// Test card.
@@ -250,11 +256,11 @@ func rootWhy(s vault.RootSource) string {
 	case vault.RootFromFlag:
 		return "from -C"
 	case vault.RootFromEnv:
-		return "from $FOLIO_DIR"
+		return "from $ASTROLABE_DIR"
 	case vault.RootFromConfig:
 		return "from config dir"
 	case vault.RootFromMarker:
-		return "folder with .obsidian/ or .folio/"
+		return "folder with .obsidian/ or .astrolabe/"
 	case vault.RootFromHome:
 		return "~/notes"
 	case vault.RootFromCwd:

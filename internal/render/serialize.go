@@ -3,9 +3,9 @@ package render
 import (
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // ANSI serialises the page for a terminal: each line's spans as SGR
@@ -70,13 +70,13 @@ func trimRight(spans []Span) []Span {
 }
 
 // ANSI parses src, renders it with opt and serialises it for enc: the
-// one-call form behind `folio render` on a terminal.
+// one-call form behind `astrolabe render` on a terminal.
 func ANSI(src string, opt Options, enc term.Encoder) string {
 	return Render(md.Parse(src), opt).ANSI(enc)
 }
 
 // Plain parses src, renders it with opt (bidi forced off) and returns
-// plain text: the form behind `folio render` into a pipe.
+// plain text: the form behind `astrolabe render` into a pipe.
 func Plain(src string, opt Options) string {
 	opt.Bidi = false
 	opt.PaintGround = false

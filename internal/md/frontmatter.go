@@ -4,7 +4,7 @@ import (
 	"strings"
 )
 
-// Frontmatter is the leading "---" YAML block of a note. Only what folio
+// Frontmatter is the leading "---" YAML block of a note. Only what astrolabe
 // needs is interpreted; everything is also kept as ordered raw fields so it
 // can be displayed. The block is never re-serialised.
 type Frontmatter struct {

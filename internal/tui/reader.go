@@ -4,24 +4,24 @@ import (
 	"errors"
 	"io/fs"
 	"path"
-	"regexp"
+	"sort"
 	"strings"
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/render"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/render"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // docView is a note open in the reader: its source, parse, rendered page and
 // the reader's position on it.
 type docView struct {
 	path  string // vault-relative ("" for stdin)
-	stdin bool   // `folio -`: read-only
+	stdin bool   // `astrolabe -`: read-only
 	name  string // display name
 	src   []byte
 	tok   vault.StatToken
@@ -42,14 +42,17 @@ type docView struct {
 
 	codeRun, codeOff int // horizontal scroll of the code block starting at line codeRun
 
-	search    *regexp.Regexp
+	search    *noteSearch
 	searchStr string
 	matches   []searchMatch
 	mi        int
 }
 
 // searchMatch is one in-note search hit, in rendered-line cells.
-type searchMatch struct{ line, x0, x1 int }
+type searchMatch struct {
+	line, x0, x1 int
+	more         [][2]int // further cell spans of the same match (split by reordering)
+}
 
 // bad reports a file that cannot be shown as a note (binary content).
 func binaryContent(b []byte) bool {
@@ -82,7 +85,7 @@ func (a *app) loadDoc(rel string) (*docView, error) {
 // setSource replaces the document text and drops the rendered page.
 func (d *docView) setSource(b []byte) {
 	if binaryContent(b) {
-		b = []byte("> [!warning] Not a text file\n> This file does not look like Markdown text, so folio will not display it.\n")
+		b = []byte("> [!warning] Not a text file\n> This file does not look like Markdown text, so astrolabe will not display it.\n")
 	}
 	d.src = b
 	d.md = md.ParseBytes(b)
@@ -422,9 +425,11 @@ func (a *app) drawReader(r term.Rect) {
 			if mi == d.mi {
 				st = a.th.SearchCurrent
 			}
-			s.Restyle(term.Rect{X: r.X + m.x0, Y: y, W: m.x1 - m.x0, H: 1}, func(o theme.Style) theme.Style {
-				return st.Over(o)
-			})
+			for _, sp := range append([][2]int{{m.x0, m.x1}}, m.more...) {
+				s.Restyle(term.Rect{X: r.X + sp[0], Y: y, W: sp[1] - sp[0], H: 1}, func(o theme.Style) theme.Style {
+					return st.Over(o)
+				})
+			}
 		}
 		if li == d.cur {
 			if !cl.BG.IsDefault() {
@@ -436,7 +441,11 @@ func (a *app) drawReader(r term.Rect) {
 					return o
 				})
 			}
-			s.SetCell(r.X+p.CursorX, y, a.gl.Bar, a.st.cursor)
+			// The bar sits in the left gutter; a line wider than the measure
+			// (a wide table) may fill the gutter, and its text wins.
+			if c := s.Cell(r.X+p.CursorX, y); c.Text == " " || c.Text == "" && c.Width != 0 {
+				s.SetCell(r.X+p.CursorX, y, a.gl.Bar, a.st.cursor)
+			}
 		}
 	}
 }
@@ -1137,17 +1146,22 @@ func (a *app) reloadDoc(d *docView) {
 
 // --- in-note search -------------------------------------------------------------
 
-// compileSearch builds a smart-case literal matcher for q.
-func compileSearch(q string) *regexp.Regexp {
-	pat := regexp.QuoteMeta(q)
-	if !hasUpper(q) {
-		pat = "(?i)" + pat
-	}
-	re, err := regexp.Compile(pat)
-	if err != nil {
+// noteSearch is an in-note search: a literal, smart-case query compared
+// after search folding (text.Fold: harakat, alef forms, presentation forms,
+// digits), so it finds Arabic as a reader expects.
+type noteSearch struct {
+	needle []byte
+	lower  bool
+}
+
+// compileSearch prepares the in-note search for q (nil for an empty q).
+func compileSearch(q string) *noteSearch {
+	lower := !hasUpper(q)
+	n, _ := text.AppendFoldString(nil, nil, q, lower)
+	if len(n) == 0 {
 		return nil
 	}
-	return re
+	return &noteSearch{needle: n, lower: lower}
 }
 
 func hasUpper(s string) bool {
@@ -1160,7 +1174,10 @@ func hasUpper(s string) bool {
 }
 
 // computeMatches finds the search matches on the rendered page (what the
-// reader sees: markup removed, wrapped lines matched one by one).
+// reader sees: markup removed, wrapped lines matched one by one). A line
+// put in visual order for the terminal is searched in logical order (the
+// bidi reordering is undone, presentation forms fold to letters) and each
+// match is mapped back to the cells it occupies, which reordering may split.
 func (a *app) computeMatches(d *docView) {
 	d.matches = d.matches[:0]
 	if d.search == nil || d.page == nil {
@@ -1168,10 +1185,12 @@ func (a *app) computeMatches(d *docView) {
 	}
 	for i, l := range d.page.Lines {
 		t := l.Text()
-		for _, m := range d.search.FindAllStringIndex(t, -1) {
-			if m[1] == m[0] {
-				continue
-			}
+		if a.bidi && text.HasRTL(t) {
+			d.matches = appendVisualMatches(d.matches, i, t, l.RTL, d.search)
+			continue
+		}
+		f, offs := text.AppendFoldString(nil, nil, t, d.search.lower)
+		for _, m := range text.FoldedRanges(nil, f, offs, len(t), d.search.needle) {
 			x0 := text.Width(t[:m[0]])
 			x1 := x0 + text.Width(t[m[0]:m[1]])
 			d.matches = append(d.matches, searchMatch{line: i, x0: x0, x1: x1})
@@ -1180,6 +1199,66 @@ func (a *app) computeMatches(d *docView) {
 	if d.mi >= len(d.matches) {
 		d.mi = 0
 	}
+}
+
+// appendVisualMatches searches a line drawn in visual order: reordering a
+// visual line again restores its logical order (the bidi reordering is its
+// own inverse on a line), which is searched; matched graphemes are mapped
+// back to their cells.
+func appendVisualMatches(dst []searchMatch, line int, t string, rtl bool, q *noteSearch) []searchMatch {
+	gs := text.Graphemes(t)
+	cl := make([]string, len(gs))
+	col := make([]int, len(gs))
+	x := 0
+	for i, g := range gs {
+		cl[i] = g.Text
+		col[i] = x
+		x += g.Width
+	}
+	base := text.LTR
+	if rtl {
+		base = text.RTL
+	}
+	bl := text.Reorder(cl, base)
+	var lb strings.Builder
+	at := make([]int, 0, len(gs)) // logical byte offset of each logical grapheme
+	for _, v := range bl.VisualToLogical {
+		at = append(at, lb.Len())
+		g := cl[v]
+		if bl.IsRTL(v) {
+			g = text.Mirror(g)
+		}
+		lb.WriteString(g)
+	}
+	logical := lb.String()
+	f, offs := text.AppendFoldString(nil, nil, logical, q.lower)
+	for _, m := range text.FoldedRanges(nil, f, offs, len(logical), q.needle) {
+		var cells []int
+		for k, o := range at {
+			if o >= m[0] && o < m[1] {
+				cells = append(cells, bl.VisualToLogical[k])
+			}
+		}
+		if len(cells) == 0 {
+			continue
+		}
+		sort.Ints(cells)
+		var spans [][2]int
+		for _, v := range cells {
+			x0, x1 := col[v], col[v]+gs[v].Width
+			if n := len(spans); n > 0 && spans[n-1][1] == x0 {
+				spans[n-1][1] = x1
+			} else {
+				spans = append(spans, [2]int{x0, x1})
+			}
+		}
+		sm := searchMatch{line: line, x0: spans[0][0], x1: spans[0][1]}
+		if len(spans) > 1 {
+			sm.more = spans[1:]
+		}
+		dst = append(dst, sm)
+	}
+	return dst
 }
 
 // startSearch runs an in-note search for q from the cursor.
@@ -1221,7 +1300,7 @@ func (a *app) showMatch(d *docView) {
 		d.focus = -1
 	}
 	a.clampView(d)
-	a.flash("/%s  %d of %d", d.searchStr, d.mi+1, len(d.matches))
+	a.flash("%d of %d  /%s", d.mi+1, len(d.matches), d.searchStr) // count first: digits after Arabic would join its run
 }
 
 func (a *app) searchNext(n int) {

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/cli"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/cli"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // Host is what the application needs from the real terminal beyond drawing
@@ -45,13 +45,13 @@ type config struct {
 	ConfigFile string // where Space T persists the theme ("" = don't)
 	RecentFile string // recent-notes state file ("" = don't remember)
 	// RecoveredDir receives unsaved editor buffers that could not be
-	// written to their note when folio is terminated ("" = nowhere).
+	// written to their note when astrolabe is terminated ("" = nowhere).
 	RecoveredDir string
 	Cwd          string // where :export writes by default
 	Now          func() time.Time
 	// EditorCommand builds the $EDITOR command (nil = term.EditorCommand).
 	EditorCommand func(file string, line int) *exec.Cmd
-	// Debug shows timings in the finder and search overlays (FOLIO_DEBUG=1).
+	// Debug shows timings in the finder and search overlays (ASTROLABE_DEBUG=1).
 	Debug bool
 }
 
@@ -60,7 +60,7 @@ const (
 	viewHome   = iota // no note open: the home screen
 	viewReader        // a rendered note
 	viewEditor        // the built-in editor
-	viewPick          // `folio pick`: the finder alone
+	viewPick          // `astrolabe pick`: the finder alone
 )
 
 // message is a transient status-bar message (DESIGN.md §4.2: 3 s).
@@ -74,7 +74,7 @@ const messageTime = 3 * time.Second
 
 // histEntry is one place in the reader's history.
 type histEntry struct {
-	path  string // vault-relative; "" with stdin for `folio -`
+	path  string // vault-relative; "" with stdin for `astrolabe -`
 	stdin bool
 	src   int // source line of the cursor (0-based)
 	off   int // cursor row minus top row
@@ -559,7 +559,7 @@ func (a *app) scanFinished() {
 
 // --- quitting -----------------------------------------------------------------
 
-// requestQuit leaves folio, asking first when an edit is unsaved.
+// requestQuit leaves astrolabe, asking first when an edit is unsaved.
 func (a *app) requestQuit() {
 	if a.edit != nil && a.edit.ed.Dirty() {
 		a.pushOverlay(newConfirm("Unsaved changes in "+a.edit.doc.name+". Quit anyway?", func(a *app) {

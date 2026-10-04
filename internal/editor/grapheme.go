@@ -4,7 +4,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/ZahakJ/folio/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
 	"github.com/rivo/uniseg"
 )
 

@@ -6,10 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/editor"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/editor"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // editSession is the built-in editor open on one note.
@@ -192,24 +192,24 @@ func (a *app) editorResult(res editor.Result) {
 			a.flash("%s", res.Message)
 		}
 	}
-	quitFolio := a.firstEdit != "" && a.firstEdit == es.doc.path
+	quitFirst := a.firstEdit != "" && a.firstEdit == es.doc.path
 	switch res.Action {
 	case editor.ActionSave:
 		a.saveEdit(func() {})
 	case editor.ActionQuit:
 		a.leaveEditor(false)
-		if quitFolio {
+		if quitFirst {
 			a.quit = true
 		}
 	case editor.ActionQuitDiscard:
 		a.leaveEditor(true)
-		if quitFolio {
+		if quitFirst {
 			a.quit = true
 		}
 	case editor.ActionSaveQuit:
 		a.saveIfDirty(func() {
 			a.leaveEditor(false)
-			if quitFolio {
+			if quitFirst {
 				a.quit = true
 			}
 		})

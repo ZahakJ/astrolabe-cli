@@ -5,14 +5,16 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/ZahakJ/folio/internal/cli"
-	"github.com/ZahakJ/folio/internal/render"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/cli"
+	"github.com/ZahakJ/astrolabe-cli/internal/render"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 func openVault(t *testing.T) (*vault.Vault, string) {
@@ -123,4 +125,21 @@ func TestResolverAdapter(t *testing.T) {
 
 func renderQuery(target string, wiki bool) render.LinkQuery {
 	return render.LinkQuery{Target: target, Wiki: wiki}
+}
+
+// `astrolabe render` on a run-reversing terminal (kitty): each Arabic word is
+// emitted in logical letter order at its visual position.
+func TestRenderHookBidiRuns(t *testing.T) {
+	src := []byte("# عنوان\n\nكتاب جميل جدا.\n")
+	d := display(term.ProfileTrueColor)
+	d.Caps.BidiMode = term.BidiRuns
+	var out bytes.Buffer
+	if err := Render(context.Background(), cli.RenderRequest{Source: src, Width: 40, Styled: true, Display: d, Out: &out}); err != nil {
+		t.Fatal(err)
+	}
+	got := regexp.MustCompile("\x1b\\[[0-9;:]*m").ReplaceAllString(out.String(), "")
+	want := "." + text.Shape("جدا") + " " + text.Shape("جميل") + " " + text.Shape("كتاب")
+	if !strings.Contains(got, want) {
+		t.Errorf("render for kitty lacks %q:\n%s", want, got)
+	}
 }

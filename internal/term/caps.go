@@ -57,9 +57,14 @@ type Caps struct {
 	Profile Profile
 	// UTF8 reports a UTF-8 locale; when false, use the ASCII glyph set.
 	UTF8 bool
-	// Bidi reports whether folio should reorder and shape RTL text itself
-	// (true) or emit logical order for a terminal that does bidi (false).
+	// Bidi reports whether astrolabe should reorder and shape RTL text itself
+	// (true: BidiOn and BidiRuns) or emit logical order for a terminal that
+	// does bidi (false: BidiOff).
 	Bidi bool
+	// BidiMode is the chosen right-to-left behaviour and BidiWhy says why
+	// (for astrolabe doctor).
+	BidiMode BidiMode
+	BidiWhy  string
 	// Hyperlinks reports OSC 8 support (a guess from the environment).
 	Hyperlinks bool
 	// Clipboard reports OSC 52 support (a guess from the environment).
@@ -79,7 +84,8 @@ type Caps struct {
 
 // Encoder returns the SGR encoder matching these capabilities.
 func (c Caps) Encoder() Encoder {
-	return Encoder{Profile: c.Profile, StyledUnderline: c.StyledUnderline, Hyperlinks: c.Hyperlinks}
+	return Encoder{Profile: c.Profile, StyledUnderline: c.StyledUnderline, Hyperlinks: c.Hyperlinks,
+		BidiRuns: c.BidiMode == BidiRuns && c.TTY}
 }
 
 // Options overrides detection. Zero values mean "detect".
@@ -91,8 +97,13 @@ type Options struct {
 	Color string
 	// ASCII forces the ASCII glyph set (UTF8=false).
 	ASCII bool
-	// Bidi is the --bidi flag: "auto", "on", "off".
+	// Bidi is the --bidi flag: "auto", "on", "off", "runs".
 	Bidi string
+	// TmuxClientTerm returns the TERM of the terminal attached to the
+	// current tmux session ("" if unknown); nil asks tmux itself (see
+	// tmuxClientTerm). Detection uses it only inside tmux, on a terminal,
+	// with --bidi auto.
+	TmuxClientTerm func() string
 	// TTY overrides terminal detection of the output (nil = detect from
 	// File, or stdout).
 	TTY *bool
@@ -143,14 +154,20 @@ func Detect(o Options) Caps {
 	c.UTF8 = !o.ASCII && detectUTF8(env, goos)
 
 	// Bidi.
-	switch strings.ToLower(o.Bidi) {
-	case "on", "true", "yes", "1":
-		c.Bidi = true
-	case "off", "false", "no", "0":
-		c.Bidi = false
-	default:
-		c.Bidi = bidiAuto(env)
+	if m, forced, err := ParseBidi(o.Bidi); err == nil && forced {
+		c.BidiMode, c.BidiWhy = m, "set by --bidi or config bidi"
+	} else {
+		query := o.TmuxClientTerm
+		if query == nil {
+			query = func() string { return tmuxClientTerm(env("TMUX")) }
+		}
+		// tmux sets TERM to tmux* or screen* in its panes; a TMUX variable
+		// with another TERM was inherited by a terminal started from a tmux
+		// pane, and its server says nothing about this terminal.
+		inTmux := env("TMUX") != "" && (strings.HasPrefix(c.Term, "tmux") || strings.HasPrefix(c.Term, "screen"))
+		c.BidiMode, c.BidiWhy = bidiAuto(env, c.TTY && inTmux, query)
 	}
+	c.Bidi = c.BidiMode != BidiOff
 
 	c.Hyperlinks = detectHyperlinks(env, c)
 	c.Clipboard = detectClipboard(env, c)
@@ -236,14 +253,99 @@ func detectUTF8(env func(string) string, goos string) bool {
 	return goos == "darwin" && env("TERM_PROGRAM") != ""
 }
 
-// bidiAuto is DESIGN.md §6: off for terminals known to implement bidi
-// themselves (VTE, Konsole, Apple Terminal, mlterm), else on.
-func bidiAuto(env func(string) string) bool {
-	if env("VTE_VERSION") != "" || env("KONSOLE_VERSION") != "" ||
-		env("TERM_PROGRAM") == "Apple_Terminal" || strings.HasPrefix(env("TERM"), "mlterm") {
-		return false
+// BidiMode is how right-to-left text reaches the terminal (DESIGN.md §6).
+type BidiMode int
+
+// Bidi modes.
+const (
+	// BidiOn: astrolabe shapes Arabic and reorders each line into visual
+	// order, for terminals that do no bidi (most of them).
+	BidiOn BidiMode = iota
+	// BidiOff: logical order, untouched, for terminals that implement bidi
+	// themselves.
+	BidiOff
+	// BidiRuns: as BidiOn, but every stretch of right-to-left letters that
+	// the terminal will reverse itself (kitty reverses each such run while
+	// shaping) is emitted pre-reversed, so the terminal's reversal restores
+	// the visual order. See text.RTLRuns.
+	BidiRuns
+)
+
+// String returns the --bidi spelling of m.
+func (m BidiMode) String() string {
+	switch m {
+	case BidiOn:
+		return "on"
+	case BidiOff:
+		return "off"
+	case BidiRuns:
+		return "runs"
 	}
-	return true
+	return fmt.Sprintf("BidiMode(%d)", int(m))
+}
+
+// ParseBidi parses a --bidi value: "auto" or "" (forced=false, no error),
+// "on", "off" or "runs".
+func ParseBidi(s string) (m BidiMode, forced bool, err error) {
+	switch strings.ToLower(strings.TrimSpace(s)) {
+	case "", "auto":
+		return BidiOn, false, nil
+	case "on", "true", "yes", "1":
+		return BidiOn, true, nil
+	case "off", "false", "no", "0":
+		return BidiOff, true, nil
+	case "runs":
+		return BidiRuns, true, nil
+	}
+	return BidiOn, false, fmt.Errorf("invalid bidi mode %q (want auto, on, off or runs)", s)
+}
+
+// bidiAuto is DESIGN.md §6 for --bidi auto: runs for kitty, off for the
+// terminals known to implement bidi themselves (VTE, Konsole, Apple
+// Terminal, mlterm), else on. Inside tmux the environment describes the
+// terminal the session was started from, which may not be the one attached
+// now; when askTmux is set, query asks tmux for the attached client's TERM
+// and that answer decides between kitty and the rest.
+func bidiAuto(env func(string) string, askTmux bool, query func() string) (BidiMode, string) {
+	term := strings.ToLower(env("TERM"))
+	kittyHints := true
+	if askTmux {
+		if ct := strings.TrimSpace(query()); ct != "" {
+			if strings.Contains(strings.ToLower(ct), "kitty") {
+				return BidiRuns, "tmux client terminal is " + ct + " (kitty reverses right-to-left runs)"
+			}
+			kittyHints = false // KITTY_WINDOW_ID etc. are left over from another terminal
+		}
+	}
+	if strings.Contains(term, "kitty") {
+		return BidiRuns, "TERM=" + env("TERM") + " (kitty reverses right-to-left runs)"
+	}
+	for _, other := range []string{"foot", "alacritty", "wezterm", "ghostty", "st-", "rxvt", "linux", "mlterm", "contour", "rio"} {
+		if strings.HasPrefix(term, other) {
+			kittyHints = false // TERM names another terminal: kitty variables are inherited
+		}
+	}
+	switch {
+	case env("VTE_VERSION") != "":
+		return BidiOff, "VTE_VERSION is set (the terminal does bidi)"
+	case env("KONSOLE_VERSION") != "":
+		return BidiOff, "KONSOLE_VERSION is set (the terminal does bidi)"
+	case env("TERM_PROGRAM") == "Apple_Terminal":
+		return BidiOff, "TERM_PROGRAM=Apple_Terminal (the terminal does bidi)"
+	case strings.HasPrefix(term, "mlterm"):
+		return BidiOff, "TERM=" + env("TERM") + " (the terminal does bidi)"
+	}
+	if kittyHints {
+		switch {
+		case env("KITTY_WINDOW_ID") != "":
+			return BidiRuns, "KITTY_WINDOW_ID is set (kitty reverses right-to-left runs)"
+		case strings.EqualFold(env("TERM_PROGRAM"), "kitty"):
+			return BidiRuns, "TERM_PROGRAM=" + env("TERM_PROGRAM") + " (kitty reverses right-to-left runs)"
+		case strings.EqualFold(env("TERMINAL_EMULATOR"), "kitty"):
+			return BidiRuns, "TERMINAL_EMULATOR=" + env("TERMINAL_EMULATOR") + " (kitty reverses right-to-left runs)"
+		}
+	}
+	return BidiOn, "default: the terminal is not known to do bidi"
 }
 
 func tmuxAtLeast(env func(string) string, major, minor int) bool {

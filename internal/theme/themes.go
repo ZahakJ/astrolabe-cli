@@ -1,14 +1,128 @@
 package theme
 
-// The four built-in themes. Every theme is authored in 24-bit colour; the
+// The five built-in themes. Every theme is authored in 24-bit colour; the
 // 256-colour profile derives from these by nearest colour, the 16-colour and
 // monochrome profiles use Basic16 and Mono.
 //
 // Contrast floors (DESIGN.md §7, enforced by tests): Text ≥ 7:1 on Ground,
 // Muted ≥ 4.5:1, Faint ≥ 3:1.
 
-// IronGall is the default and the brand: a warm near-black room lit by gold
-// leaf, ink the colour of old ivory — iron-gall ink read by lamplight.
+// Onyx is the default: a strictly neutral dark room — pure greys (R=G=B)
+// for every ground and ink — with gold as the accent only: the mark,
+// bullets, bars, chevrons, links, the cursor bar and the READ pill.
+var Onyx = register(Theme{
+	Name:       "onyx",
+	Dark:       true,
+	Ground:     Hex("#111111"),
+	Raised:     Hex("#1a1a1a"),
+	Hover:      Hex("#232323"),
+	Text:       Hex("#e4e4e4"),
+	Muted:      Hex("#9c9c9c"),
+	Faint:      Hex("#686868"),
+	Heading:    Hex("#f6f6f6"),
+	Accent:     Hex("#d4a72c"),
+	AccentSoft: Hex("#2a2a2a"),
+	Border:     Hex("#2c2c2c"),
+	Danger:     Hex("#e5675f"),
+	Ok:         Hex("#7fc98f"),
+	Link:       Hex("#d4a72c"),
+	Math:       Hex("#b8b8b8"),
+
+	CodeComment: Hex("#686868"),
+	CodeString:  Hex("#9ec58b"),
+	CodeNumber:  Hex("#d8a657"),
+	CodeKeyword: Hex("#7aa7d8"),
+
+	Callout: Callouts{
+		Note:     Hex("#7aa7d8"),
+		Abstract: Hex("#7aa7d8"),
+		Info:     Hex("#7aa7d8"),
+		Todo:     Hex("#7aa7d8"),
+		Tip:      Hex("#7fc98f"),
+		Success:  Hex("#7fc98f"),
+		Question: Hex("#6fbfb5"),
+		Warning:  Hex("#d4a72c"),
+		Failure:  Hex("#e5675f"),
+		Danger:   Hex("#e5675f"),
+		Bug:      Hex("#e5675f"),
+		Example:  Hex("#6fbfb5"),
+		Quote:    Hex("#9c9c9c"),
+	},
+
+	Selection:     Style{FG: Hex("#f6f6f6"), BG: Hex("#333333")},
+	CursorLine:    Style{BG: Hex("#181818")},
+	Highlight:     Style{FG: Hex("#f6f6f6"), BG: Hex("#333333")},
+	LinkFocus:     Style{FG: Hex("#111111"), BG: Hex("#d4a72c")},
+	Search:        Style{FG: Hex("#111111"), BG: Hex("#d4a72c")},
+	SearchCurrent: Style{FG: Hex("#111111"), BG: Hex("#f6f6f6"), Attrs: Bold},
+	StatusBar:     Style{FG: Hex("#9c9c9c"), BG: Hex("#1a1a1a")},
+	PillRead:      Style{FG: Hex("#111111"), BG: Hex("#d4a72c"), Attrs: Bold},
+	PillNormal:    Style{FG: Hex("#111111"), BG: Hex("#c8c8c8"), Attrs: Bold},
+	PillInsert:    Style{FG: Hex("#111111"), BG: Hex("#7fc98f"), Attrs: Bold},
+	PillVisual:    Style{FG: Hex("#111111"), BG: Hex("#6fbfb5"), Attrs: Bold},
+})
+
+// Sidereal is a deep night-sky room, cold and luminous — violet
+// and cyan instruments on blue-black, the sky an astrolabe maps. No gold
+// anywhere in the chrome; amber is kept for warnings and tasks due soon.
+var Sidereal = register(Theme{
+	Name:       "sidereal",
+	Dark:       true,
+	Ground:     Hex("#0b0e17"),
+	Raised:     Hex("#121726"),
+	Hover:      Hex("#1a2236"),
+	Text:       Hex("#d8def0"),
+	Muted:      Hex("#8e98b5"),
+	Faint:      Hex("#5b6585"),
+	Heading:    Hex("#f1f3ff"),
+	Accent:     Hex("#a394ff"),
+	AccentSoft: Hex("#1a2236"),
+	Border:     Hex("#232b42"),
+	Danger:     Hex("#ff6b81"),
+	Ok:         Hex("#6ee7a8"),
+	Link:       Hex("#6fd3f7"),
+	Math:       Hex("#9fb4ff"),
+
+	CodeComment: Hex("#5b6585"),
+	CodeString:  Hex("#8fe3b0"),
+	CodeNumber:  Hex("#ffb38a"),
+	CodeKeyword: Hex("#c4a7ff"),
+
+	Callout: Callouts{
+		Note:     Hex("#6fd3f7"),
+		Abstract: Hex("#6fd3f7"),
+		Info:     Hex("#6fd3f7"),
+		Todo:     Hex("#6fd3f7"),
+		Tip:      Hex("#6ee7a8"),
+		Success:  Hex("#6ee7a8"),
+		Question: Hex("#a394ff"),
+		Warning:  Hex("#ffc777"),
+		Failure:  Hex("#ff6b81"),
+		Danger:   Hex("#ff6b81"),
+		Bug:      Hex("#ff6b81"),
+		Example:  Hex("#c4a7ff"),
+		Quote:    Hex("#8e98b5"),
+	},
+
+	Selection:     Style{FG: Hex("#f1f3ff"), BG: Hex("#2a3560")},
+	CursorLine:    Style{BG: Hex("#101727")},
+	Highlight:     Style{FG: Hex("#f1f3ff"), BG: Hex("#2a3560")},
+	LinkFocus:     Style{FG: Hex("#0b0e17"), BG: Hex("#6fd3f7")},
+	Search:        Style{FG: Hex("#0b0e17"), BG: Hex("#6fd3f7")},
+	SearchCurrent: Style{FG: Hex("#0b0e17"), BG: Hex("#f1f3ff"), Attrs: Bold},
+	StatusBar:     Style{FG: Hex("#8e98b5"), BG: Hex("#121726")},
+	PillRead:      Style{FG: Hex("#0b0e17"), BG: Hex("#a394ff"), Attrs: Bold},
+	PillNormal:    Style{FG: Hex("#0b0e17"), BG: Hex("#6fd3f7"), Attrs: Bold},
+	PillInsert:    Style{FG: Hex("#0b0e17"), BG: Hex("#6ee7a8"), Attrs: Bold},
+	PillVisual:    Style{FG: Hex("#0b0e17"), BG: Hex("#ff8fd0"), Attrs: Bold},
+
+	Accent16: Magenta,
+	Link16:   Cyan,
+	Title:    Hex("#b8acff"),
+})
+
+// IronGall is the original theme: a warm near-black room lit by gold leaf,
+// ink the colour of old ivory — iron-gall ink read by lamplight.
 var IronGall = register(Theme{
 	Name:       "iron-gall",
 	Dark:       true,
@@ -167,7 +281,7 @@ var Graphite = register(Theme{
 	PillVisual:    Style{FG: Hex("#0d1117"), BG: Hex("#b19ad9"), Attrs: Bold},
 })
 
-// Mocha matches the Catppuccin Mocha palette so folio sits inside a
+// Mocha matches the Catppuccin Mocha palette so astrolabe sits inside a
 // Catppuccin Neovim/tmux setup; mauve takes the accent's place.
 var Mocha = register(Theme{
 	Name:       "mocha",

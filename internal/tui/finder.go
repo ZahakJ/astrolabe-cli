@@ -5,27 +5,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/render"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/render"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // finder is the fuzzy note finder (Ctrl-p, Space f), the recent-notes list
-// (Space r) and the `folio pick` picker. It matches on title, path and
+// (Space r) and the `astrolabe pick` picker. It matches on title, path and
 // aliases; an empty query lists notes most recent first.
 type finder struct {
 	in     lineInput
 	list   listView
 	recent bool // Space r: only recently visited and modified notes
-	pick   bool // folio pick: Enter returns the path
+	pick   bool // astrolabe pick: Enter returns the path
 
 	cands   []finderCand
 	candLen int // vault size when cands was built
 	results []finderResult
 	query   string
-	took    time.Duration // last ranking time (shown with FOLIO_DEBUG=1)
+	took    time.Duration // last ranking time (shown with ASTROLABE_DEBUG=1)
 
 	preview    *render.Page
 	previewFor string
@@ -238,7 +238,7 @@ func (f *finder) draw(a *app) {
 	}
 	cw := text.Width(count)
 	s.PutString(in.X+in.W-cw, in.Y, count, a.st.pFaint)
-	cx := f.in.draw(s, x, in.Y, in.X+in.W-cw-1-x, a.st.panel)
+	cx := f.in.draw(s, x, in.Y, in.X+in.W-cw-1-x, a.st.panel, a.bidi)
 	if f.in.text == "" {
 		ph := "type to filter; empty lists recent notes"
 		if f.recent {
@@ -328,8 +328,10 @@ func (f *finder) drawRow(a *app, r term.Rect, res finderResult, sel bool) {
 		}
 		p, ppos = dir, keep
 	}
+	ltitle, ltpos := title, tpos // logical, for the bidi display below
+	rtlTitle := false
 	if d, ok := a.disp(title); ok {
-		title, tpos = d, nil
+		title, tpos, rtlTitle = d, nil, true
 	}
 	if d, ok := a.disp(p); ok {
 		p, ppos = d, nil
@@ -360,7 +362,28 @@ func (f *finder) drawRow(a *app, r term.Rect, res finderResult, sel bool) {
 	if pw > 0 {
 		titleMax = maxX - pw - 2
 	}
-	if tw > titleMax-r.X {
+	switch {
+	case rtlTitle:
+		// Cut a right-to-left title at its logical end (the ellipsis lands
+		// at the visual left) and carry the match through reordering.
+		lt := ltitle
+		if tw > titleMax-r.X && text.BaseDirection(ltitle) == text.RTL {
+			lt = text.Truncate(ltitle, titleMax-r.X, a.gl.Ellipsis)
+			if lt != ltitle {
+				keep := ltpos[:0:0]
+				for _, b := range ltpos {
+					if b < len(lt)-len(a.gl.Ellipsis) {
+						keep = append(keep, b)
+					}
+				}
+				ltpos = keep
+			}
+		}
+		title, tpos = text.VisualPositions(lt, ltpos)
+		if text.Width(title) > titleMax-r.X {
+			title = text.Truncate(title, titleMax-r.X, a.gl.Ellipsis)
+		}
+	case tw > titleMax-r.X:
 		title = text.Truncate(title, titleMax-r.X, a.gl.Ellipsis)
 	}
 	a.putHighlighted(r.X, r.Y, title, st, tpos, titleMax)

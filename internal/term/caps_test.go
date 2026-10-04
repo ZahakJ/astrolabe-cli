@@ -176,7 +176,7 @@ func TestEditorCommand(t *testing.T) {
 	tests := []struct {
 		env  []string
 		line int
-		want string // the args after "sh -c <script> folio-editor"
+		want string // the args after "sh -c <script> astrolabe-editor"
 		ed   string
 	}{
 		{nil, 12, "+12 notes/a.md", "vi"},
@@ -189,12 +189,70 @@ func TestEditorCommand(t *testing.T) {
 	}
 	for _, tt := range tests {
 		cmd := editorCommand(envOf(tt.env...), "notes/a.md", tt.line)
-		if cmd.Args[1] != "-c" || cmd.Args[2] != tt.ed+` "$@"` || cmd.Args[3] != "folio-editor" {
+		if cmd.Args[1] != "-c" || cmd.Args[2] != tt.ed+` "$@"` || cmd.Args[3] != "astrolabe-editor" {
 			t.Errorf("env %v: args %q", tt.env, cmd.Args)
 			continue
 		}
 		if got := strings.Join(cmd.Args[4:], " "); got != tt.want {
 			t.Errorf("env %v: editor args %q, want %q", tt.env, got, tt.want)
 		}
+	}
+}
+
+func TestDetectBidiMode(t *testing.T) {
+	tests := []struct {
+		name string
+		flag string
+		tmux string // what tmux reports as the client terminal ("" = no answer)
+		env  []string
+		want BidiMode
+	}{
+		{"default", "", "", nil, BidiOn},
+		{"kitty TERM", "", "", []string{"TERM", "xterm-kitty"}, BidiRuns},
+		{"kitty window", "", "", []string{"TERM", "xterm-256color", "KITTY_WINDOW_ID", "3"}, BidiRuns},
+		{"TERM_PROGRAM", "", "", []string{"TERM_PROGRAM", "kitty"}, BidiRuns},
+		{"TERMINAL_EMULATOR", "", "", []string{"TERMINAL_EMULATOR", "kitty"}, BidiRuns},
+		{"foot started from kitty", "", "", []string{"TERM", "foot", "KITTY_WINDOW_ID", "3"}, BidiOn},
+		{"VTE started from kitty", "", "", []string{"TERM", "xterm-256color", "KITTY_WINDOW_ID", "3", "VTE_VERSION", "7600"}, BidiOff},
+		{"kitty started from Konsole", "", "", []string{"TERM", "xterm-kitty", "KONSOLE_VERSION", "230800"}, BidiRuns},
+		{"Konsole", "", "", []string{"KONSOLE_VERSION", "230800"}, BidiOff},
+		{"tmux in kitty", "", "xterm-kitty", []string{"TERM", "tmux-256color", "TMUX", "/tmp/s,1,0"}, BidiRuns},
+		{"tmux, stale kitty hint", "", "foot", []string{"TERM", "tmux-256color", "TMUX", "/tmp/s,1,0", "KITTY_WINDOW_ID", "3"}, BidiOn},
+		{"tmux, no answer, kitty hint", "", "", []string{"TERM", "tmux-256color", "TMUX", "/tmp/s,1,0", "KITTY_WINDOW_ID", "3"}, BidiRuns},
+		{"tmux in foot", "", "foot", []string{"TERM", "tmux-256color", "TMUX", "/tmp/s,1,0"}, BidiOn},
+		{"foot started from a kitty tmux pane", "", "xterm-kitty", []string{"TERM", "foot", "TMUX", "/tmp/s,1,0", "KITTY_WINDOW_ID", "3"}, BidiOn},
+		{"forced on in kitty", "on", "", []string{"TERM", "xterm-kitty"}, BidiOn},
+		{"forced runs", "runs", "", nil, BidiRuns},
+		{"forced off", "off", "", []string{"TERM", "xterm-kitty"}, BidiOff},
+	}
+	for _, tt := range tests {
+		asked := false
+		o := Options{Bidi: tt.flag, TmuxClientTerm: func() string { asked = true; return tt.tmux }}
+		c := detect(o, true, tt.env...)
+		if c.BidiMode != tt.want || c.Bidi != (tt.want != BidiOff) || c.BidiWhy == "" {
+			t.Errorf("%s: mode %v (%s), Bidi %v; want %v", tt.name, c.BidiMode, c.BidiWhy, c.Bidi, tt.want)
+		}
+		if asked && !strings.Contains(strings.Join(tt.env, " "), "tmux-256color") {
+			t.Errorf("%s: asked tmux outside tmux", tt.name)
+		}
+		if enc := c.Encoder(); enc.BidiRuns != (tt.want == BidiRuns) {
+			t.Errorf("%s: Encoder.BidiRuns = %v", tt.name, enc.BidiRuns)
+		}
+	}
+	// No terminal: tmux is not asked and the encoder never pre-reverses.
+	asked := false
+	c := detect(Options{TmuxClientTerm: func() string { asked = true; return "xterm-kitty" }}, false, "TMUX", "/tmp/s,1,0", "TERM", "xterm-kitty")
+	if asked || c.Encoder().BidiRuns {
+		t.Errorf("pipe: asked=%v BidiRuns=%v", asked, c.Encoder().BidiRuns)
+	}
+	if _, _, err := ParseBidi("sideways"); err == nil {
+		t.Error("ParseBidi accepted a bad mode")
+	}
+	if tmuxClientTerm("") != "" {
+		t.Error("tmuxClientTerm without TMUX")
+	}
+	// A TMUX value naming no server fails quietly and quickly.
+	if got := tmuxClientTerm("/nonexistent/astrolabe-test-socket,1,0"); got != "" {
+		t.Errorf("tmuxClientTerm on a missing server = %q", got)
 	}
 }

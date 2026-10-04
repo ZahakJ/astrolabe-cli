@@ -1,4 +1,4 @@
-module github.com/ZahakJ/folio
+module github.com/ZahakJ/astrolabe-cli
 
 go 1.22
 

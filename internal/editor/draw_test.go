@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 func newScreen(w, h int) *term.Screen { return term.NewScreen(io.Discard, w, h, term.Encoder{}) }

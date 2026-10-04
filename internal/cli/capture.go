@@ -9,11 +9,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
-// cmdAdd is `folio add TEXT…`: capture one item into today's daily note.
+// cmdAdd is `astrolabe add TEXT…`: capture one item into today's daily note.
 func (a *app) cmdAdd(args []string) error {
 	fs := newFlagSet("add")
 	task := fs.Bool("-t", "--task")
@@ -123,7 +123,7 @@ func vaultRelDir(root, p string) (string, error) {
 	return c, nil
 }
 
-// cmdNew is `folio new TITLE…`: create a note and print its path.
+// cmdNew is `astrolabe new TITLE…`: create a note and print its path.
 func (a *app) cmdNew(args []string) error {
 	fs := newFlagSet("new")
 	open := fs.Bool("-o", "--open")
@@ -178,9 +178,9 @@ func (a *app) cmdNew(args []string) error {
 		}
 	}
 	if a.human() {
-		a.out("%s\n", a.painter().accent(abs))
+		a.raw("%s\n", a.painter().accent(abs))
 	} else {
-		a.out("%s\n", abs)
+		a.raw("%s\n", abs)
 	}
 	return nil
 }
@@ -205,7 +205,7 @@ func runEditor(file string, line int) error {
 	return nil
 }
 
-// cmdToday is `folio today`: open today's daily note, or print its path.
+// cmdToday is `astrolabe today`: open today's daily note, or print its path.
 func (a *app) cmdToday(args []string) error {
 	fs := newFlagSet("today")
 	pathOnly := fs.Bool("-p", "--print")
@@ -217,7 +217,7 @@ func (a *app) cmdToday(args []string) error {
 		return usagef("today", "unexpected argument %q", pos[0])
 	}
 	if !*pathOnly && a.env.Hooks.RunTUI == nil {
-		return fmt.Errorf("today: the interactive reader is %w; 'folio today -p' prints the path", ErrNotBuilt)
+		return fmt.Errorf("today: the interactive reader is %w; 'astrolabe today -p' prints the path", ErrNotBuilt)
 	}
 	v, err := a.vault()
 	if err != nil {
@@ -231,7 +231,7 @@ func (a *app) cmdToday(args []string) error {
 		if created {
 			a.infof("created %s", rel)
 		}
-		a.out("%s\n", v.Abs(rel))
+		a.raw("%s\n", v.Abs(rel))
 		return nil
 	}
 	req := a.tuiRequest(ModeToday)

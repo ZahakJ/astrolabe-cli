@@ -6,7 +6,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/ZahakJ/folio/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
 )
 
 // cursorMark marks the cursor position in test buffers.

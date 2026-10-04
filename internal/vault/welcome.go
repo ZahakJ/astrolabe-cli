@@ -11,14 +11,14 @@ import (
 const WelcomeName = "Welcome.md"
 
 // WelcomeNote is written into a fresh ~/notes on the first interactive run.
-// It teaches folio in a minute using the keymap of DESIGN.md §4.3 and
+// It teaches astrolabe in a minute using the keymap of DESIGN.md §4.3 and
 // exercises the renderer (callout, tasks, table, code, wikilinks).
 const WelcomeNote = `---
-tags: [folio]
+tags: [astrolabe]
 ---
-# Welcome to folio
+# Welcome to astrolabe
 
-Your notes are plain Markdown files in this folder. folio reads them
+Your notes are plain Markdown files in this folder. astrolabe reads them
 beautifully, edits them in place and never keeps anything else here.
 
 > [!tip] The one key to remember
@@ -37,7 +37,7 @@ Press ` + "`i`" + ` and type: the line under the cursor opens in the built-in Vi
 editor, already in Insert mode. ` + "`Esc Esc`" + ` saves and returns here. ` + "`a`" + ` types at
 the end of the line, ` + "`e`" + ` opens the editor in Normal mode, ` + "`E`" + ` opens ` + "`$EDITOR`" + `.
 
-- [x] Open folio
+- [x] Open astrolabe
 - [ ] Toggle this task with ` + "`x`" + ` (it rewrites one character of the file)
 - [ ] Capture a thought with ` + "`Space c`" + ` — it lands in today's note
 
@@ -54,10 +54,10 @@ the end of the line, ` + "`e`" + ` opens the editor in Normal mode, ` + "`E`" + 
 ## From the shell
 
 ` + "```sh" + `
-folio add "call the plumber"   # one line into today's note
-folio add -t "renew passport"  # …as a task
-folio find invoice             # path:line:text, like grep
-nvim "$(folio pick)"           # choose a note, edit it elsewhere
+astrolabe add "call the plumber"   # one line into today's note
+astrolabe add -t "renew passport"  # …as a task
+astrolabe find invoice             # path:line:text, like grep
+nvim "$(astrolabe pick)"           # choose a note, edit it elsewhere
 ` + "```" + `
 
 Delete this note whenever you like; ` + "`q`" + ` quits.

@@ -77,7 +77,7 @@ func editorCommand(env func(string) string, file string, line int) *exec.Cmd {
 	default:
 		args = []string{file}
 	}
-	return exec.Command("/bin/sh", append([]string{"-c", ed + ` "$@"`, "folio-editor"}, args...)...)
+	return exec.Command("/bin/sh", append([]string{"-c", ed + ` "$@"`, "astrolabe-editor"}, args...)...)
 }
 
 var plusLineEditors = map[string]bool{

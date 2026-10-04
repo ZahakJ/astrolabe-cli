@@ -6,9 +6,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // layoutRow records where one display row was drawn, for cursor placement
@@ -411,11 +411,18 @@ func (e *Editor) drawCompleter(s *term.Screen, r term.Rect, cur Cursor) {
 		lx := x + 2
 		label := text.Truncate(it.Label, maxX-lx, gl.Ellipsis)
 		m, ok := text.FuzzyMatch(c.query, label)
+		pos := m.Positions
+		if !ok {
+			pos = nil
+		}
+		if e.bidi && text.HasRTL(label) {
+			// Shown shaped and in visual order, highlights carried along;
+			// a right-to-left label is cut at its logical end.
+			label, pos = text.VisualPositions(text.Truncate(it.Label, maxX-lx, gl.Ellipsis), pos)
+		}
 		hit := map[int]bool{}
-		if ok {
-			for _, p := range m.Positions {
-				hit[p] = true
-			}
+		for _, p := range pos {
+			hit[p] = true
 		}
 		for _, g := range text.Graphemes(label) {
 			st := rs
@@ -426,6 +433,9 @@ func (e *Editor) drawCompleter(s *term.Screen, r term.Rect, cur Cursor) {
 		}
 		if it.Detail != "" && it.Detail != it.Label && lx+3 < maxX {
 			d := text.TruncateLeft(it.Detail, maxX-lx-2, gl.Ellipsis)
+			if e.bidi && text.HasRTL(d) {
+				d = text.VisualPath(d) // a path: folders first
+			}
 			s.PutStringClip(lx+2, ry, d, rs.Fg(th.Muted), maxX)
 		}
 	}

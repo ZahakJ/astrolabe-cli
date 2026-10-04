@@ -12,24 +12,24 @@ type RootSource int
 
 const (
 	RootFromFlag    RootSource = iota // -C DIR / --dir
-	RootFromEnv                       // $FOLIO_DIR
+	RootFromEnv                       // $ASTROLABE_DIR
 	RootFromConfig                    // config "dir"
-	RootFromMarker                    // nearest ancestor of cwd with .obsidian/ or .folio/
+	RootFromMarker                    // nearest ancestor of cwd with .obsidian/ or .astrolabe/
 	RootFromHome                      // ~/notes exists
 	RootFromCwd                       // cwd directly contains .md files
 	RootFromDefault                   // ~/notes, not yet existing (created on first write)
 )
 
-// String names the source for `folio doctor`.
+// String names the source for `astrolabe doctor`.
 func (s RootSource) String() string {
-	return [...]string{"flag", "FOLIO_DIR", "config", "vault marker", "~/notes", "working directory", "~/notes (new)"}[s]
+	return [...]string{"flag", "ASTROLABE_DIR", "config", "vault marker", "~/notes", "working directory", "~/notes (new)"}[s]
 }
 
 // RootInputs are the explicit inputs of root resolution, so that it can be
 // tested without touching the process environment.
 type RootInputs struct {
 	Flag   string // value of -C/--dir ("" if absent)
-	Env    string // value of $FOLIO_DIR
+	Env    string // value of $ASTROLABE_DIR
 	Config string // config key "dir"
 	Cwd    string // working directory (absolute)
 	Home   string // home directory (absolute)
@@ -45,8 +45,8 @@ type Root struct {
 }
 
 // ResolveRoot picks the vault root in the order of DESIGN.md §3: flag,
-// $FOLIO_DIR, config dir, the nearest ancestor of Cwd containing .obsidian/
-// or .folio/, ~/notes if it exists, Cwd if it directly contains a .md file,
+// $ASTROLABE_DIR, config dir, the nearest ancestor of Cwd containing .obsidian/
+// or .astrolabe/, ~/notes if it exists, Cwd if it directly contains a .md file,
 // else ~/notes (to be created on first write). Explicit values may start
 // with "~/" and may be relative to Cwd. The only side effects are stat and
 // directory reads.
@@ -87,9 +87,9 @@ func ResolveRoot(in RootInputs) (Root, error) {
 	return Root{Dir: notes, Source: RootFromDefault, Exists: false}, nil
 }
 
-// ResolveFileRoot gives the vault for a file opened directly ("folio
+// ResolveFileRoot gives the vault for a file opened directly ("astrolabe
 // some/file.md" outside any vault): the nearest ancestor of the file with
-// .obsidian/ or .folio/, else the file's own directory. It returns the root
+// .obsidian/ or .astrolabe/, else the file's own directory. It returns the root
 // and the file's vault-relative slash path.
 func ResolveFileRoot(file, cwd string) (root, rel string, err error) {
 	abs := file
@@ -123,11 +123,11 @@ func expandPath(p, cwd, home string) string {
 	return filepath.Clean(p)
 }
 
-// findMarker walks up from dir looking for .obsidian/ or .folio/.
+// findMarker walks up from dir looking for .obsidian/ or .astrolabe/.
 func findMarker(dir string) (string, bool) {
 	dir = filepath.Clean(dir)
 	for {
-		for _, m := range []string{".obsidian", ".folio"} {
+		for _, m := range []string{".obsidian", ".astrolabe", ".folio"} { // .folio: the former name
 			if fi, err := os.Stat(filepath.Join(dir, m)); err == nil && fi.IsDir() {
 				return dir, true
 			}

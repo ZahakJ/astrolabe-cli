@@ -93,7 +93,7 @@ func TestStyleOver(t *testing.T) {
 }
 
 // contrastFloors are DESIGN.md §7's minimum ratios against the ground, plus
-// the floors folio holds itself to for other ink that must stay readable.
+// the floors astrolabe holds itself to for other ink that must stay readable.
 func TestThemeContrast(t *testing.T) {
 	for _, name := range Names() {
 		th, ok := Lookup(name)
@@ -163,6 +163,9 @@ func TestThemeTokensComplete(t *testing.T) {
 		v := reflect.ValueOf(th)
 		for i := 0; i < v.NumField(); i++ {
 			f := v.Type().Field(i)
+			if f.Name == "Accent16" || f.Name == "Link16" || f.Name == "Title" {
+				continue // optional: Default keeps the yellow 16-colour policy
+			}
 			if f.Type == reflect.TypeOf(Color(0)) && v.Field(i).Interface().(Color).IsDefault() {
 				t.Errorf("%s: token %s unset", name, f.Name)
 			}
@@ -182,6 +185,13 @@ func TestDesignAnchors(t *testing.T) {
 		theme, token string
 		got, want    Color
 	}{
+		{"onyx", "ground", Onyx.Ground, Hex("#111111")},
+		{"onyx", "text", Onyx.Text, Hex("#e4e4e4")},
+		{"onyx", "accent", Onyx.Accent, Hex("#d4a72c")},
+		{"sidereal", "ground", Sidereal.Ground, Hex("#0b0e17")},
+		{"sidereal", "text", Sidereal.Text, Hex("#d8def0")},
+		{"sidereal", "accent", Sidereal.Accent, Hex("#a394ff")},
+		{"sidereal", "link", Sidereal.Link, Hex("#6fd3f7")},
 		{"iron-gall", "ground", IronGall.Ground, Hex("#16130e")},
 		{"iron-gall", "text", IronGall.Text, Hex("#eae2d0")},
 		{"iron-gall", "accent", IronGall.Accent, Hex("#c9a227")},
@@ -202,8 +212,23 @@ func TestDesignAnchors(t *testing.T) {
 }
 
 func TestLookupAndCycle(t *testing.T) {
-	if DefaultTheme().Name != "iron-gall" || Names()[0] != "iron-gall" {
-		t.Fatal("iron-gall must be the default")
+	if DefaultTheme().Name != "onyx" || Names()[0] != "onyx" {
+		t.Fatal("onyx must be the default")
+	}
+	if _, ok := Lookup("sidereal"); !ok {
+		t.Error("sidereal must stay available")
+	}
+	if b := Onyx.Basic16(); b.Accent != Yellow {
+		t.Errorf("onyx 16-colour accent %v", b.Accent)
+	}
+	if _, ok := Lookup("iron-gall"); !ok {
+		t.Error("iron-gall must stay available")
+	}
+	if b := Sidereal.Basic16(); b.Accent != Magenta || b.Link != Cyan {
+		t.Errorf("sidereal 16-colour accent %v link %v", b.Accent, b.Link)
+	}
+	if b := IronGall.Basic16(); b.Accent != Yellow {
+		t.Errorf("iron-gall 16-colour accent %v", b.Accent)
 	}
 	if _, ok := Lookup("Parchment"); !ok {
 		t.Error("lookup must be case-insensitive")
@@ -217,7 +242,7 @@ func TestLookupAndCycle(t *testing.T) {
 		seen[n] = true
 		n = Next(n)
 	}
-	if n != DefaultName || len(seen) != 4 {
+	if n != DefaultName || len(seen) != 6 {
 		t.Errorf("cycle broken: %v", seen)
 	}
 	if Next("unknown") != DefaultName {
@@ -375,6 +400,21 @@ func TestUnicodeGlyphsInDejaVu(t *testing.T) {
 			if !strings.Contains(string(out), "DejaVu Sans Mono") {
 				t.Errorf("glyph %s %q (%U) missing from DejaVu Sans Mono", name, string(r), r)
 			}
+		}
+	}
+}
+
+// Onyx is strictly neutral: every ground, ink and border is a pure grey.
+func TestOnyxNeutral(t *testing.T) {
+	for name, c := range map[string]Color{
+		"ground": Onyx.Ground, "raised": Onyx.Raised, "hover": Onyx.Hover, "text": Onyx.Text,
+		"muted": Onyx.Muted, "faint": Onyx.Faint, "heading": Onyx.Heading, "border": Onyx.Border,
+		"accentSoft": Onyx.AccentSoft, "cursorLine": Onyx.CursorLine.BG, "selection": Onyx.Selection.BG,
+		"status": Onyx.StatusBar.FG, "statusBG": Onyx.StatusBar.BG, "comment": Onyx.CodeComment,
+	} {
+		r, g, b := c.Components()
+		if r != g || g != b {
+			t.Errorf("onyx %s = %v is not grey", name, c)
 		}
 	}
 }

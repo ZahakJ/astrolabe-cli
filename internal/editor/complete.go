@@ -3,7 +3,7 @@ package editor
 import (
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
 )
 
 // maxCandidates caps the completer's list.

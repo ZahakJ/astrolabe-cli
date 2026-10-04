@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // writeJSON prints v as indented JSON on stdout.
@@ -34,7 +34,7 @@ func (a *app) nothing(format string, args ...any) error {
 // (reading verbs have nothing to read).
 func (a *app) requireRoot(v *vault.Vault) error {
 	if fi, err := os.Stat(v.Root()); err != nil || !fi.IsDir() {
-		return a.nothing("no vault at %s yet ('folio add' or 'folio new' creates it; -C DIR picks another)", v.Root())
+		return a.nothing("no vault at %s yet ('astrolabe add' or 'astrolabe new' creates it; -C DIR picks another)", v.Root())
 	}
 	return nil
 }
@@ -49,7 +49,7 @@ type findJSON struct {
 	Kind    string   `json:"kind"`
 }
 
-// cmdFind is `folio find QUERY…`: full-text search.
+// cmdFind is `astrolabe find QUERY…`: full-text search.
 func (a *app) cmdFind(args []string) error {
 	fs := newFlagSet("find")
 	files := fs.Bool("-l", "--files")
@@ -307,7 +307,7 @@ type noteJSON struct {
 	Size     int64    `json:"size"`
 }
 
-// cmdLs is `folio ls [QUERY]`: notes, most recently modified first.
+// cmdLs is `astrolabe ls [QUERY]`: notes, most recently modified first.
 func (a *app) cmdLs(args []string) error {
 	fs := newFlagSet("ls")
 	tag := fs.String("", "--tag")

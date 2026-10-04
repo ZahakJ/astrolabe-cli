@@ -1,4 +1,4 @@
-// Package editor is folio's built-in modal editor (DESIGN.md §4.3): a
+// Package editor is astrolabe's built-in modal editor (DESIGN.md §4.3): a
 // deliberate Vim subset over a Markdown buffer, with Markdown assistance in
 // Insert mode and a styled-source display that soft-wraps to the page
 // measure.
@@ -33,7 +33,7 @@
 //     saves first when Dirty (autosave on leave) and returns to the reader.
 //   - :q on a dirty buffer refuses with E37, like Vim; ZZ and :x return
 //     ActionSaveQuit and the host saves only when Dirty. What "quit" means
-//     (back to the reader, or leaving folio) is the host's decision.
+//     (back to the reader, or leaving astrolabe) is the host's decision.
 //   - Ex commands the editor does not know (":e NOTE", ":theme x", ":w FILE",
 //     …) are passed to the host as ActionCommand.
 //   - j/k without a count move by display line (as gj/gk); with a count or
@@ -63,8 +63,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // Mode is the editor's modal state.
@@ -153,7 +153,7 @@ type Completer func(query string) []Candidate
 type Config struct {
 	// Text is the file content, exactly as read.
 	Text []byte
-	// Theme and Glyphs style the display (default: iron-gall, Unicode).
+	// Theme and Glyphs style the display (default: onyx, Unicode).
 	Theme  theme.Theme
 	Glyphs theme.Glyphs
 	// Measure is the soft-wrap width in cells (default 78).

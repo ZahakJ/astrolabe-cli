@@ -41,7 +41,7 @@ func TestFuzzyMatchBasic(t *testing.T) {
 }
 
 func TestFuzzyPositionsAreValid(t *testing.T) {
-	cands := []string{"daily/2026-10-03.md", "Projects/Folio Design.md", "reading/books/The Name of the Rose.md", "a/b/c/d/e/f.md"}
+	cands := []string{"daily/2026-10-03.md", "Projects/Atlas Design.md", "reading/books/The Name of the Rose.md", "a/b/c/d/e/f.md"}
 	pats := []string{"dd", "fold", "rose", "nr", "abc", "2026", "md"}
 	for _, c := range cands {
 		for _, p := range pats {
@@ -80,8 +80,8 @@ func TestFuzzyRanking(t *testing.T) {
 		better string
 		worse  string
 	}{
-		{"fol", "folio.md", "notes/fooled.md"},                  // prefix and consecutive
-		{"fd", "Folio Design.md", "fluid.md"},                   // word boundaries
+		{"atl", "atlas.md", "notes/attila.md"},                  // prefix and consecutive
+		{"ad", "Atlas Design.md", "aloud.md"},                   // word boundaries
 		{"rose", "books/Rose.md", "books/prose and verse.md"},   // boundary vs mid-word
 		{"note", "projects/notes.md", "notes/projects/plan.md"}, // basename beats directory
 		{"md", "Meeting Digest.md", "random.md"},                // initials... both match
@@ -113,7 +113,7 @@ func TestFuzzyBestAlignment(t *testing.T) {
 	if !ok || !reflect.DeepEqual(m.Positions, []int{4, 5, 6}) {
 		t.Errorf("positions = %v", m.Positions)
 	}
-	m, _ = FuzzyMatch("fm", "folio/main.md")
+	m, _ = FuzzyMatch("lm", "lunar/main.md")
 	if !reflect.DeepEqual(m.Positions, []int{0, 6}) {
 		t.Errorf("positions = %v", m.Positions)
 	}
@@ -135,7 +135,7 @@ func TestRank(t *testing.T) {
 }
 
 func makeCandidates(n int) []string {
-	words := []string{"daily", "projects", "reading", "garden", "Meeting", "notes", "Design", "folio",
+	words := []string{"daily", "projects", "reading", "garden", "Meeting", "notes", "Design", "atlas",
 		"archive", "ideas", "journal", "books", "recipes", "travel", "people", "research", "2026", "draft"}
 	out := make([]string, n)
 	for i := range out {

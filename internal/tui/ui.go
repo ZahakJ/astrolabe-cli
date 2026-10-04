@@ -4,9 +4,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // styles are the composite styles the application draws with, derived once
@@ -26,7 +26,7 @@ type styles struct {
 	border   theme.Style // hairlines on the raised ground
 	pageRule theme.Style // hairlines on the page ground (panel separators)
 	sel      theme.Style // selected row ground
-	selBar   theme.Style // the gold bar marking the selected row
+	selBar   theme.Style // the accent bar marking the selected row
 	match    theme.Style // matched characters in fuzzy lists (fg only)
 	status   theme.Style
 	sMuted   theme.Style
@@ -114,6 +114,59 @@ func (a *app) dispRanges(s string, ranges [][2]int) (string, [][2]int) {
 func (a *app) dispS(s string) string {
 	d, _ := a.disp(s)
 	return d
+}
+
+// dispFit is dispS truncated to w cells. A right-to-left string is cut at
+// its logical end before it is put in visual order, so the ellipsis lands
+// at the visual left, where reading ends, and the start of a title stays.
+func (a *app) dispFit(s string, w int) string {
+	if text.HasRTL(s) && text.BaseDirection(s) == text.RTL {
+		t := text.Truncate(s, w, a.gl.Ellipsis)
+		if a.bidi {
+			t = text.Visual(t, text.RTL)
+		}
+		return t
+	}
+	return text.Truncate(a.dispS(s), w, a.gl.Ellipsis)
+}
+
+// dispMsg is dispFit for a status message: an English sentence that may
+// quote an Arabic title, laid out left to right.
+func (a *app) dispMsg(s string, w int) string {
+	t := text.Truncate(s, w, a.gl.Ellipsis)
+	if a.bidi && text.HasRTL(t) {
+		t = text.Visual(t, text.LTR)
+	}
+	return t
+}
+
+// dispRangesFit is dispRanges truncated to w cells, cut like dispFit.
+func (a *app) dispRangesFit(s string, ranges [][2]int, w int) (string, [][2]int) {
+	if text.Width(s) > w {
+		t := text.Truncate(s, w, a.gl.Ellipsis)
+		if text.HasRTL(s) && text.BaseDirection(s) == text.RTL {
+			keep := len(t) - len(a.gl.Ellipsis)
+			var rs [][2]int
+			for _, r := range ranges {
+				if r[0] < keep {
+					rs = append(rs, [2]int{r[0], min(r[1], keep)})
+				}
+			}
+			return a.dispRanges(t, rs)
+		}
+		s2, rs := a.dispRanges(s, ranges)
+		return text.Truncate(s2, w, a.gl.Ellipsis), rs
+	}
+	return a.dispRanges(s, ranges)
+}
+
+// dispPath is dispS for a vault path: Arabic folder and note names are
+// shaped and reordered, but the path reads left to right (folders first).
+func (a *app) dispPath(p string) string {
+	if !a.bidi || !text.HasRTL(p) {
+		return p
+	}
+	return text.VisualPath(p)
 }
 
 // dimBehind fades everything drawn so far, so an overlay stands out from
@@ -259,10 +312,15 @@ func (in *lineInput) handleKey(k term.KeyEvent) (handled, changed bool) {
 
 // draw draws the field in [x, x+w) of row y and returns the cursor column.
 // When the text is wider than the field it scrolls so the cursor stays
-// visible.
-func (in *lineInput) draw(s *term.Screen, x, y, w int, st theme.Style) int {
+// visible. With bidi, right-to-left text is shown shaped and in visual
+// order (DESIGN.md §6) while editing stays logical; the cursor sits on the
+// visual cell of the grapheme after it.
+func (in *lineInput) draw(s *term.Screen, x, y, w int, st theme.Style, bidi bool) int {
 	if w <= 0 {
 		return x
+	}
+	if bidi && text.HasRTL(in.text) && text.Width(in.text) < w {
+		return in.drawVisual(s, x, y, w, st)
 	}
 	before := text.Width(in.text[:in.pos])
 	start := 0
@@ -280,6 +338,48 @@ func (in *lineInput) draw(s *term.Screen, x, y, w int, st theme.Style) int {
 	shown := in.text[start:]
 	s.PutStringClip(x, y, shown, st, x+w)
 	return x + text.Width(in.text[start:in.pos])
+}
+
+// drawVisual is draw for a field holding right-to-left text that fits. The
+// returned column is where the bar cursor goes: at the visual edge of the
+// insertion point, which for right-to-left text is the right edge of the
+// grapheme after the cursor.
+func (in *lineInput) drawVisual(s *term.Screen, x, y, w int, st theme.Style) int {
+	gs := text.Graphemes(in.text)
+	cl := make([]string, len(gs))
+	for i, g := range gs {
+		cl[i] = g.Text
+	}
+	shaped := text.ShapeClusters(cl)
+	bl := text.Reorder(cl, text.BaseDirection(in.text))
+	col := make([]int, len(gs)) // visual column of each logical grapheme
+	cx := x
+	for _, l := range bl.VisualToLogical {
+		col[l] = cx
+		g := shaped[l]
+		if bl.IsRTL(l) {
+			g = text.Mirror(g)
+		}
+		if g != "" {
+			cx = s.PutStringClip(cx, y, g, st, x+w)
+		}
+	}
+	cellW := func(i int) int { return text.Width(shaped[i]) }
+	cur := 0
+	for cur < len(gs) && gs[cur].Offset < in.pos {
+		cur++
+	}
+	switch {
+	case len(gs) == 0:
+		return x
+	case cur < len(gs) && bl.IsRTL(cur):
+		return col[cur] + cellW(cur)
+	case cur < len(gs):
+		return col[cur]
+	case bl.IsRTL(len(gs) - 1):
+		return col[len(gs)-1]
+	}
+	return col[len(gs)-1] + cellW(len(gs)-1)
 }
 
 // --- selectable list ----------------------------------------------------------

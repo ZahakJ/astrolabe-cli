@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ZahakJ/folio/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
 )
 
 func TestListContinuation(t *testing.T) {

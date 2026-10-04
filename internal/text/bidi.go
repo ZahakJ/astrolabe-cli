@@ -482,3 +482,52 @@ func VisualRanges(s string, ranges [][2]int) (string, [][2]int) {
 	}
 	return b.String(), out
 }
+
+// VisualPositions is VisualRanges for highlighted byte positions (fuzzy
+// match positions): it returns s in visual order and the offsets in it of
+// the graphemes whose source contained a position.
+func VisualPositions(s string, pos []int) (string, []int) {
+	ranges := make([][2]int, 0, len(pos))
+	for _, b := range pos {
+		if b >= 0 && b < len(s) {
+			_, n := utf8.DecodeRuneInString(s[b:])
+			ranges = append(ranges, [2]int{b, b + n})
+		}
+	}
+	// A position inside a grapheme (a mark) highlights the whole grapheme.
+	gs := Graphemes(s)
+	for k, r := range ranges {
+		for _, g := range gs {
+			if r[0] >= g.Offset && r[0] < g.Offset+len(g.Text) {
+				ranges[k] = [2]int{g.Offset, g.Offset + len(g.Text)}
+				break
+			}
+		}
+	}
+	vis, vr := VisualRanges(s, ranges)
+	var out []int
+	for _, g := range Graphemes(vis) {
+		for _, r := range vr {
+			if g.Offset >= r[0] && g.Offset < r[1] {
+				out = append(out, g.Offset)
+				break
+			}
+		}
+	}
+	return vis, out
+}
+
+// VisualPath is Visual for a slash-separated path: each component is
+// shaped and ordered on its own, left to right, so folders stay first and a
+// date-named file such as 2026-10-03 under an Arabic folder keeps its
+// digits in order.
+func VisualPath(p string) string {
+	if !HasRTL(p) {
+		return p
+	}
+	parts := strings.Split(p, "/")
+	for i, c := range parts {
+		parts[i] = Visual(c, LTR)
+	}
+	return strings.Join(parts, "/")
+}

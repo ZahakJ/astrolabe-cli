@@ -9,16 +9,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/cli"
-	"github.com/ZahakJ/folio/internal/render"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/cli"
+	"github.com/ZahakJ/astrolabe-cli/internal/render"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // processStart approximates the process start time (package initialisation
 // runs before main), for the cold-start measurement printed with
-// FOLIO_DEBUG=1.
+// ASTROLABE_DEBUG=1.
 var processStart = time.Now()
 
 // resolver connects internal/render to the vault (render does not import
@@ -154,7 +154,7 @@ func Run(ctx context.Context, req cli.TUIRequest) (cli.TUIResult, error) {
 			RecentFile:   req.RecentFile,
 			RecoveredDir: recoveredDir(req.RecentFile),
 			Cwd:          cwd,
-			Debug:        os.Getenv("FOLIO_DEBUG") == "1",
+			Debug:        os.Getenv("ASTROLABE_DEBUG") == "1",
 		})
 		a.sigReq = sigReq
 		if w, h := t.Size(); w > 0 && h > 0 {
@@ -174,8 +174,8 @@ func Run(ctx context.Context, req cli.TUIRequest) (cli.TUIResult, error) {
 		a.finish()
 		res, runErr = a.result, a.err
 	}()
-	if os.Getenv("FOLIO_DEBUG") == "1" {
-		fmt.Fprintf(os.Stderr, "folio: first frame %.1f ms after start\n", float64(firstFrame.Microseconds())/1000)
+	if os.Getenv("ASTROLABE_DEBUG") == "1" {
+		fmt.Fprintf(os.Stderr, "astrolabe: first frame %.1f ms after start\n", float64(firstFrame.Microseconds())/1000)
 	}
 	return res, runErr
 }
@@ -202,7 +202,7 @@ func (a *app) start(req cli.TUIRequest) {
 			a.openEditorOn(req.Path, line)
 			if a.view == viewEditor {
 				if req.Line <= 0 {
-					a.startWriting() // folio new -o: a fresh note
+					a.startWriting() // astrolabe new -o: a fresh note
 				}
 				return
 			}
@@ -334,7 +334,7 @@ func (a *app) finish() {
 }
 
 // recoveredDir puts recovered buffers next to the recent-notes file
-// ($XDG_STATE_HOME/folio/recovered).
+// ($XDG_STATE_HOME/astrolabe/recovered).
 func recoveredDir(recentFile string) string {
 	if recentFile == "" {
 		return ""
@@ -342,7 +342,7 @@ func recoveredDir(recentFile string) string {
 	return filepath.Join(filepath.Dir(recentFile), "recovered")
 }
 
-// emergencySave keeps a dirty editor buffer when folio is about to end
+// emergencySave keeps a dirty editor buffer when astrolabe is about to end
 // without the user's say (SIGHUP, SIGTERM, the terminal gone): it writes
 // the note if the file is unchanged on disk since it was read, otherwise
 // (or if that write fails) it writes the buffer to RecoveredDir, which the

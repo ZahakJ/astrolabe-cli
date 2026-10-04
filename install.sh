@@ -1,23 +1,28 @@
 #!/bin/sh
-# folio installer — https://github.com/ZahakJ/folio
+# astrolabe installer — https://github.com/ZahakJ/astrolabe-cli
 #
-#   curl -fsSL https://raw.githubusercontent.com/ZahakJ/folio/main/install.sh | sh
-#   wget -qO- https://raw.githubusercontent.com/ZahakJ/folio/main/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh
+#   wget -qO- https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh
 #
-# Installs the folio binary for this machine into ~/.local/bin (no root
-# needed). Re-running it upgrades in place.
+# Installs the astrolabe binary (Astrolabe CLI) for this machine into
+# ~/.local/bin (no root needed), with a short alias `ast` next to it unless a
+# different `ast` is already on PATH. Re-running it upgrades in place.
 #
 # Options (each has an environment variable, for `curl … | sh`):
 #   --from FILE        install a binary you already have (offline); if a
 #                      checksums.txt sits next to FILE it is verified
-#   --version vX.Y.Z   install that release        (FOLIO_VERSION; default latest)
-#   --bin-dir DIR      install into DIR            (FOLIO_BIN_DIR; default ~/.local/bin)
-#   --uninstall        remove the installed binary
+#   --version vX.Y.Z   install that release        (ASTROLABE_VERSION; default latest)
+#   --bin-dir DIR      install into DIR            (ASTROLABE_BIN_DIR; default ~/.local/bin)
+#   --uninstall        remove the installed binary and its `ast` alias
+#   --remove-folio     also remove a `folio` binary (the tool's former name)
+#                      found in the same directory
 #   -h, --help         show this help
 #
-# FOLIO_BASE_URL downloads from a mirror instead of GitHub releases: the
-# directory must hold folio-<os>-<arch> and checksums.txt (the layout of
-# scripts/build.sh's dist/), e.g. FOLIO_BASE_URL=https://mirror.example/folio/v1.0.0
+# ASTROLABE_NO_ALIAS=1 skips the `ast` alias.
+#
+# ASTROLABE_BASE_URL downloads from a mirror instead of GitHub releases: the
+# directory must hold astrolabe-<os>-<arch> and checksums.txt (the layout of
+# scripts/build.sh's dist/), e.g. ASTROLABE_BASE_URL=https://mirror.example/astrolabe/v1.0.0
 #
 # Supported: Linux x86_64 and aarch64, macOS x86_64 and arm64.
 
@@ -27,8 +32,8 @@ set -eu
 # cut short by `curl … | sh` executes nothing at all.
 main() {
 
-REPO=ZahakJ/folio
-prog=folio-install
+REPO=ZahakJ/astrolabe-cli
+prog=astrolabe-install
 
 say() { printf '%s\n' "$*"; }
 warn() { printf '%s: warning: %s\n' "$prog" "$*" >&2; }
@@ -39,17 +44,21 @@ die() {
 
 usage() {
 	cat <<'USAGE'
-folio installer: puts the folio binary for this machine in ~/.local/bin.
+astrolabe installer: puts the astrolabe binary for this machine in ~/.local/bin.
 
-usage: sh install.sh [--from FILE] [--version vX.Y.Z] [--bin-dir DIR] [--uninstall]
+usage: sh install.sh [--from FILE] [--version vX.Y.Z] [--bin-dir DIR]
+                     [--uninstall] [--remove-folio]
 
   --from FILE        install a binary you already have (offline); a
                      checksums.txt next to FILE is verified
-  --version vX.Y.Z   install that release instead of the latest (FOLIO_VERSION)
-  --bin-dir DIR      install into DIR (FOLIO_BIN_DIR; default ~/.local/bin)
-  --uninstall        remove the installed binary
-  FOLIO_BASE_URL     download from a mirror holding folio-<os>-<arch> and
-                     checksums.txt, instead of GitHub releases
+  --version vX.Y.Z   install that release instead of the latest (ASTROLABE_VERSION)
+  --bin-dir DIR      install into DIR (ASTROLABE_BIN_DIR; default ~/.local/bin)
+  --uninstall        remove the installed binary and its `ast` alias
+  --remove-folio     remove a `folio` binary (the former name) in the same
+                     directory
+  ASTROLABE_BASE_URL download from a mirror holding astrolabe-<os>-<arch>
+                     and checksums.txt, instead of GitHub releases
+  ASTROLABE_NO_ALIAS=1  do not create the `ast` alias
 USAGE
 }
 
@@ -59,8 +68,9 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 from=""
 uninstall=0
-version=${FOLIO_VERSION:-}
-bin_dir=${FOLIO_BIN_DIR:-}
+remove_folio=0
+version=${ASTROLABE_VERSION:-}
+bin_dir=${ASTROLABE_BIN_DIR:-}
 
 while [ $# -gt 0 ]; do
 	case $1 in
@@ -95,6 +105,10 @@ while [ $# -gt 0 ]; do
 		uninstall=1
 		shift
 		;;
+	--remove-folio)
+		remove_folio=1
+		shift
+		;;
 	-h | --help)
 		usage
 		exit 0
@@ -106,15 +120,21 @@ while [ $# -gt 0 ]; do
 done
 
 if [ -z "$bin_dir" ]; then
-	[ -n "${HOME:-}" ] || die "HOME is not set; choose a directory with FOLIO_BIN_DIR=/path"
+	[ -n "${HOME:-}" ] || die "HOME is not set; choose a directory with ASTROLABE_BIN_DIR=/path"
 	bin_dir=$HOME/.local/bin
 fi
-# A literal "~/" (from FOLIO_BIN_DIR='~/bin') is expanded by hand.
+# A literal "~/" (from ASTROLABE_BIN_DIR='~/bin') is expanded by hand.
 # shellcheck disable=SC2088
 case $bin_dir in
 "~/"*) bin_dir=${HOME:-}/${bin_dir#"~/"} ;;
 esac
-target=$bin_dir/folio
+target=$bin_dir/astrolabe
+alias_path=$bin_dir/ast
+
+# is_our_alias: the ast in bin_dir is our symlink to astrolabe.
+is_our_alias() {
+	[ -L "$alias_path" ] && [ "$(readlink "$alias_path")" = astrolabe ]
+}
 
 # --- uninstall -----------------------------------------------------------------
 
@@ -122,9 +142,12 @@ if [ "$uninstall" = 1 ]; then
 	if [ -e "$target" ]; then
 		rm -f "$target" || die "could not remove $target"
 		say "removed $target"
-		say "(notes are untouched; settings, if any, are in ~/.config/folio and ~/.local/state/folio)"
+		if is_our_alias; then
+			rm -f "$alias_path" && say "removed $alias_path"
+		fi
+		say "(notes are untouched; settings, if any, are in ~/.config/astrolabe-cli and ~/.local/state/astrolabe-cli)"
 	else
-		say "folio is not installed in $bin_dir"
+		say "astrolabe is not installed in $bin_dir"
 	fi
 	exit 0
 fi
@@ -134,13 +157,13 @@ fi
 case $(uname -s) in
 Linux) os=linux ;;
 Darwin) os=darwin ;;
-*) die "unsupported system: $(uname -s) (folio supports Linux and macOS)" ;;
+*) die "unsupported system: $(uname -s) (astrolabe supports Linux and macOS)" ;;
 esac
 
 case $(uname -m) in
 x86_64 | amd64) arch=amd64 ;;
 aarch64 | arm64 | armv8*) arch=arm64 ;;
-*) die "unsupported architecture: $(uname -m) (folio supports x86_64 and arm64)" ;;
+*) die "unsupported architecture: $(uname -m) (astrolabe supports x86_64 and arm64)" ;;
 esac
 
 # A shell running under Rosetta reports x86_64 on Apple silicon: prefer the
@@ -151,11 +174,11 @@ if [ "$os" = darwin ] && [ "$arch" = amd64 ]; then
 	fi
 fi
 
-asset=folio-$os-$arch
+asset=astrolabe-$os-$arch
 
 # --- helpers -------------------------------------------------------------------
 
-tmp=$(mktemp -d 2>/dev/null || mktemp -d -t folio) || die "cannot create a temporary directory"
+tmp=$(mktemp -d 2>/dev/null || mktemp -d -t astrolabe) || die "cannot create a temporary directory"
 cleanup() { rm -rf "$tmp"; }
 trap cleanup EXIT
 trap 'cleanup; exit 130' INT
@@ -201,7 +224,7 @@ verify() {
 
 # --- fetch ---------------------------------------------------------------------
 
-bin=$tmp/folio
+bin=$tmp/astrolabe
 if [ -n "$from" ]; then
 	[ -f "$from" ] || die "no such file: $from"
 	cp "$from" "$bin" || die "cannot read $from"
@@ -211,8 +234,8 @@ if [ -n "$from" ]; then
 	fi
 	source_desc=$from
 else
-	if [ -n "${FOLIO_BASE_URL:-}" ]; then
-		base=${FOLIO_BASE_URL%/}
+	if [ -n "${ASTROLABE_BASE_URL:-}" ]; then
+		base=${ASTROLABE_BASE_URL%/}
 	elif [ -n "$version" ]; then
 		case $version in
 		v*) ;;
@@ -246,9 +269,9 @@ if [ -x "$target" ]; then
 	old_version=$("$target" version </dev/null 2>/dev/null || true)
 fi
 
-mkdir -p "$bin_dir" || die "cannot create $bin_dir (choose another with FOLIO_BIN_DIR=...)"
-# Copy next to the target, then rename: atomic, and safe while folio runs.
-staged=$bin_dir/.folio.$$
+mkdir -p "$bin_dir" || die "cannot create $bin_dir (choose another with ASTROLABE_BIN_DIR=...)"
+# Copy next to the target, then rename: atomic, and safe while astrolabe runs.
+staged=$bin_dir/.astrolabe.$$
 cp "$bin" "$staged" || die "cannot write to $bin_dir"
 chmod 0755 "$staged"
 mv -f "$staged" "$target" || {
@@ -265,6 +288,31 @@ else
 	say "  was: $old_version"
 fi
 say "  $new_version"
+
+# --- the `ast` alias ----------------------------------------------------------
+
+if [ "${ASTROLABE_NO_ALIAS:-}" = 1 ]; then
+	:
+elif is_our_alias; then
+	:
+elif [ -e "$alias_path" ] || [ -L "$alias_path" ]; then
+	say "note: $alias_path exists and is not astrolabe; the short alias \`ast\` was not created"
+elif other=$(command -v ast 2>/dev/null) && [ -n "$other" ]; then
+	say "note: another \`ast\` is on your PATH ($other); the short alias was not created"
+else
+	ln -s astrolabe "$alias_path" && say "  alias: $alias_path -> astrolabe"
+fi
+
+# --- the former name -----------------------------------------------------------
+
+old=$bin_dir/folio
+if [ -e "$old" ]; then
+	if [ "$remove_folio" = 1 ]; then
+		rm -f "$old" && say "removed $old (the former name of this tool)"
+	else
+		say "note: $old is the former name of this tool; remove it with --remove-folio"
+	fi
+fi
 
 # --- PATH hint -----------------------------------------------------------------
 
@@ -284,7 +332,7 @@ case ":${PATH:-}:" in
 esac
 
 say ""
-say "Try: folio help"
+say "Try: astrolabe help"
 }
 
 main "$@"

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // taskBox returns the box glyph for a task, its style, and the attribute
@@ -107,7 +107,7 @@ func (r *renderer) taskBody(it *md.ListItem, w int, c ctx, tight bool) []row {
 func (r *renderer) dueChip(raw string, t *md.Task) []sp {
 	d, err := time.Parse("2006-01-02", raw)
 	label := raw
-	overdue := false
+	overdue, soon := false, false
 	if err == nil {
 		today := time.Date(r.today.Year(), r.today.Month(), r.today.Day(), 0, 0, 0, 0, time.UTC)
 		days := int(d.Sub(today).Hours() / 24)
@@ -126,6 +126,7 @@ func (r *renderer) dueChip(raw string, t *md.Task) []sp {
 		}
 		open := t != nil && t.State != 'x' && t.State != 'X' && t.State != '-'
 		overdue = open && days < 0
+		soon = open && days >= 0 && days <= 1
 		if days == 0 && open {
 			label = "today"
 		}
@@ -133,6 +134,9 @@ func (r *renderer) dueChip(raw string, t *md.Task) []sp {
 	key := r.faint()
 	val := r.muted()
 	word := "due"
+	if soon && !r.t.Callout.Warning.IsDefault() {
+		val = theme.Style{FG: r.t.Callout.Warning}
+	}
 	if overdue {
 		word = "overdue"
 		val = theme.Style{FG: r.t.Danger, Attrs: theme.Bold}

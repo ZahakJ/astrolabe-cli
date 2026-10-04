@@ -225,6 +225,16 @@ func ShapeClusters(clusters []string) []string {
 	moveTo := map[int]int{} // fused alef cluster → lam cluster
 	for i, r := range runes {
 		t := types[i]
+		if t == joinU {
+			// A non-joining letter with a presentation form (hamza) takes
+			// it too, so a shaped word draws all its letters from one
+			// font: run-reversing terminals (kitty) split runs at a font
+			// change (see RTLRuns).
+			if f, ok := arabicForms[r]; ok && f[0] != 0 {
+				out[i] = f[0]
+			}
+			continue
+		}
 		if t != joinD && t != joinR {
 			continue
 		}

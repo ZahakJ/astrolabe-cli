@@ -30,7 +30,7 @@ satellites: [[Celestial navigation]] is the long version, and
 
 > [!tip] Finding things
 > `Space f` finds a note by name, `Space /` searches every line, and
-> `folio find` does the same from the shell.
+> `astrolabe find` does the same from the shell.
 
 ---
 

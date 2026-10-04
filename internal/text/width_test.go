@@ -106,8 +106,8 @@ func TestTruncateLeft(t *testing.T) {
 		w    int
 		want string
 	}{
-		{"projects/folio/notes.md", 30, "projects/folio/notes.md"},
-		{"projects/folio/notes.md", 12, "…io/notes.md"},
+		{"projects/astrolabe/notes.md", 30, "projects/astrolabe/notes.md"},
+		{"projects/astrolabe/notes.md", 12, "…be/notes.md"},
 		{"abcdefgh", 5, "…efgh"},
 		{"日本語テキスト", 7, "…キスト"},
 		{"日本語テキスト", 6, "…スト"}, // a wide char never straddles

@@ -1,5 +1,5 @@
 // Package termtest provides a virtual terminal for tests: it interprets the
-// escape sequences folio emits and applies them to a cell grid, so tests can
+// escape sequences astrolabe emits and applies them to a cell grid, so tests can
 // assert on what a user would see rather than on raw bytes.
 //
 // Supported: printable text with grapheme clustering and wide cells, CR LF
@@ -18,8 +18,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // Cell is one cell of the virtual screen. The right half of a wide

@@ -3,9 +3,9 @@ package tui
 import (
 	"os"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // homeState is the selection on the home screen's recent-notes list.
@@ -87,13 +87,48 @@ func (a *app) drawHome(r term.Rect) {
 		showLegend = false
 		blockH -= legendRows + 1
 	}
+	// The Astrolabe mark replaces the lone ✦ when there is room for it
+	// after the recent list and the legend.
+	logo := logoArt.rows
+	logoCls := logoArt.classes
+	if ascii {
+		logo, logoCls = logoASCII.rows, logoASCII.classes
+	}
+	showLogo := blockH+len(logo)+1 <= r.H-2 && r.W >= 24
+	if showLogo {
+		blockH += len(logo) // replaces the one-row brand, plus its gap
+	}
 	y := r.Y + max(1, (r.H-blockH)/2)
 	center := func(str string, st theme.Style) {
 		w := text.Width(str)
 		s.PutStringClip(r.X+max(0, (r.W-w)/2), y, str, st, r.X+r.W)
 		y++
 	}
-	center(a.gl.Brand, a.st.accent.With(boldAttr))
+	if showLogo {
+		lw := text.Width(logo[0])
+		x0 := r.X + max(0, (r.W-lw)/2)
+		ring := a.st.accent
+		pin := theme.Style{FG: a.th.Link, BG: ring.BG}
+		for i, row := range logo {
+			x := x0
+			cls := logoCls[i]
+			k := 0
+			for _, ch := range row {
+				st := ring
+				if k < len(cls) && cls[k] == 'c' {
+					st = pin
+				}
+				if ch != ' ' {
+					s.SetCell(x, y, string(ch), st)
+				}
+				x++
+				k++
+			}
+			y++
+		}
+	} else {
+		center(a.gl.Brand, a.st.accent.With(boldAttr))
+	}
 	y++
 	center("The vault is open.", a.st.heading)
 	count := plural(a.v.Len(), "note", "notes")
@@ -119,7 +154,6 @@ func (a *app) drawHome(r term.Rect) {
 			if n, ok := a.v.Note(rel); ok && n.Title != "" {
 				title = n.Title
 			}
-			title = a.dispS(title)
 			st := a.st.base
 			if i == h.sel {
 				s.SetCell(x0-2, y, a.gl.Bar, a.st.cursor)
@@ -130,10 +164,10 @@ func (a *app) drawHome(r term.Rect) {
 			if dir != "" {
 				tw = blockW - min(text.Width(dir), blockW/2) - 2
 			}
-			s.PutStringClip(x0, y, text.Truncate(title, tw, a.gl.Ellipsis), st, x0+tw)
+			s.PutStringClip(x0, y, a.dispFit(title, tw), st, x0+tw)
 			if dir != "" {
 				dw := min(text.Width(dir), blockW/2)
-				s.PutStringClip(x0+blockW-dw, y, text.TruncateLeft(dir, dw, a.gl.Ellipsis), a.st.faint, x0+blockW)
+				s.PutStringClip(x0+blockW-dw, y, text.TruncateLeft(a.dispPath(dir), dw, a.gl.Ellipsis), a.st.faint, x0+blockW)
 			}
 			h.rows = append(h.rows, y)
 			y++

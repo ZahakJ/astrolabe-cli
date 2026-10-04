@@ -378,7 +378,7 @@ func (t *Terminal) Suspend() error {
 // to cooked mode on the main screen, then re-enters the TUI; the next Flush
 // redraws everything. The input reader is paused meanwhile so the program
 // gets every keystroke. Unset Stdin, Stdout and Stderr are connected to the
-// terminal device (so it works when folio's own stdout is a pipe).
+// terminal device (so it works when astrolabe's own stdout is a pipe).
 func (t *Terminal) RunExternal(cmd *exec.Cmd) error {
 	t.controlReader(ctlPause)
 	t.mu.Lock()

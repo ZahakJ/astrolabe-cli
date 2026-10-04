@@ -1,4 +1,4 @@
-// Package vault is folio's notes store: it finds the vault root, scans the
+// Package vault is astrolabe's notes store: it finds the vault root, scans the
 // tree of Markdown files into an in-memory index (titles, aliases, tags,
 // headings, links, tasks), resolves links the way Obsidian does, searches
 // file contents, manages daily notes and capture, and performs every write

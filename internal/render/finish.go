@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // finishLine prepares one wrapped line of a w-cell box for display: the
@@ -122,7 +122,7 @@ func (r *renderer) titleBlock(blocks []md.Block) ([]row, []md.Block) {
 	w := r.measure
 	var rows []row
 	if title != "" {
-		a := attr{st: theme.Style{FG: r.t.Heading, Attrs: theme.Bold}, line: int32(src0)}
+		a := attr{st: theme.Style{FG: r.t.TitleInk(), Attrs: theme.Bold}, line: int32(src0)}
 		var spans []sp
 		if titleInl != nil {
 			spans = r.inlines(titleInl, a, nil)

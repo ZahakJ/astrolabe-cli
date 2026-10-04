@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 type linkJSON struct {
@@ -25,7 +25,7 @@ type linkJSON struct {
 // noteArg resolves the single NOTE argument of links/backlinks.
 func (a *app) noteArg(verb string, pos []string) (string, *vault.Vault, error) {
 	if len(pos) == 0 {
-		return "", nil, usagef(verb, "which note? (folio %s NOTE)", verb)
+		return "", nil, usagef(verb, "which note? (astrolabe %s NOTE)", verb)
 	}
 	ref, err := a.resolveNote(strings.Join(pos, " "))
 	if err != nil {
@@ -43,7 +43,7 @@ func (a *app) noteArg(verb string, pos []string) (string, *vault.Vault, error) {
 	return ref.Rel, v, nil
 }
 
-// cmdLinks is `folio links NOTE`: outgoing links.
+// cmdLinks is `astrolabe links NOTE`: outgoing links.
 func (a *app) cmdLinks(args []string) error {
 	fs := newFlagSet("links")
 	files := fs.Bool("-l", "--files")
@@ -180,7 +180,7 @@ type backlinkJSON struct {
 	Context string `json:"context"`
 }
 
-// cmdBacklinks is `folio backlinks NOTE`: incoming links with context.
+// cmdBacklinks is `astrolabe backlinks NOTE`: incoming links with context.
 func (a *app) cmdBacklinks(args []string) error {
 	fs := newFlagSet("backlinks")
 	files := fs.Bool("-l", "--files")
@@ -287,7 +287,7 @@ func linkSpan(l vault.Link) [][2]int {
 	return nil
 }
 
-// cmdPath is `folio path [NOTE]`: the vault root or a note's absolute path.
+// cmdPath is `astrolabe path [NOTE]`: the vault root or a note's absolute path.
 func (a *app) cmdPath(args []string) error {
 	fs := newFlagSet("path")
 	pos, err := fs.Parse(args)
@@ -299,13 +299,13 @@ func (a *app) cmdPath(args []string) error {
 		if err != nil {
 			return err
 		}
-		a.out("%s\n", r.Dir)
+		a.raw("%s\n", r.Dir)
 		return nil
 	}
 	ref, err := a.resolveNote(strings.Join(pos, " "))
 	if err != nil {
 		return err
 	}
-	a.out("%s\n", a.v.Abs(ref.Rel))
+	a.raw("%s\n", a.v.Abs(ref.Rel))
 	return nil
 }

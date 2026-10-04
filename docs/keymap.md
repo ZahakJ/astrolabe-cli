@@ -1,12 +1,12 @@
-# folio keymap
+# Astrolabe CLI keymap
 
-This page lists every key in folio, for printing or keeping in a second window. The reader keys come from the keymap table in `internal/tui/keymap.go`. The in-app help (`?`) and the leader palette (press `Space` and wait) read the same table.
+This page lists every key in Astrolabe CLI, for printing or keeping in a second window. The reader keys come from the keymap table in `internal/tui/keymap.go`. The in-app help (`?`) and the leader palette (press `Space` and wait) read the same table.
 
 A count typed before a key repeats it or gives it a target: `5j` moves five lines down, and `12G` goes to source line 12. `Esc` always closes the topmost overlay.
 
 ## Reader
 
-The reader shows a gold `▎` cursor in the left margin. Actions apply to the block under it.
+The reader shows an accent-coloured `▎` cursor in the left margin. Actions apply to the block under it.
 
 ### Move
 
@@ -41,7 +41,7 @@ What `Enter` does depends on what is under the cursor:
 
 - **A note link** opens the note, and a link to a heading or block jumps there.
 - **A broken link** asks whether to create the note (`y` / `n`). A broken link to an attachment (`![[chart.png]]`) only says it is missing.
-- **A URL** is shown in the status bar and copied to the clipboard (OSC 52). folio never opens it.
+- **A URL** is shown in the status bar and copied to the clipboard (OSC 52). Astrolabe CLI never opens it.
 - **A heading with no link** has its fold toggled.
 - **A footnote mark** jumps to the footnote's definition.
 
@@ -236,7 +236,7 @@ The editor implements a deliberate subset of Vim, and everything in it behaves a
 | `:q!`, `ZQ` | leave, discarding changes |
 | `:wq`, `:x`, `ZZ` | save if changed and leave |
 
-In a `folio new -o` session, leaving the editor exits folio. Everywhere else it returns to the reader. Other ex commands (`:e NOTE`, `:theme NAME`, `:today`, `:new`, `:export`) are passed to the reader.
+In a `astrolabe new -o` session, leaving the editor exits Astrolabe CLI. Everywhere else it returns to the reader. Other ex commands (`:e NOTE`, `:theme NAME`, `:today`, `:new`, `:export`) are passed to the reader.
 
 ### Motions
 

@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // attr is the internal per-span payload: a style, an optional hit (1-based
@@ -522,7 +522,9 @@ func pad(spans []sp, w int, st theme.Style) []sp {
 func (r *renderer) heading(h *md.Heading, w int, c ctx, id string, folded bool, hidden int) []row {
 	a := r.body()
 	switch {
-	case h.Level <= 2:
+	case h.Level == 1:
+		a.st = theme.Style{FG: r.t.TitleInk(), Attrs: theme.Bold}
+	case h.Level == 2:
 		a.st = theme.Style{FG: r.t.Heading, Attrs: theme.Bold}
 	case h.Level == 3:
 		a.st = theme.Style{FG: r.t.Text, Attrs: theme.Bold}

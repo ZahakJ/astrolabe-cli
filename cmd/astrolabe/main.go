@@ -1,4 +1,4 @@
-// Command folio is a terminal Markdown notes tool: a reader, a small modal
+// Command astrolabe is a terminal Markdown notes tool: a reader, a small modal
 // editor and a set of shell verbs over a folder of plain .md files.
 //
 // This file only wires the process to internal/cli (DESIGN.md §2: "dispatch
@@ -11,8 +11,8 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/ZahakJ/folio/internal/cli"
-	"github.com/ZahakJ/folio/internal/tui"
+	"github.com/ZahakJ/astrolabe-cli/internal/cli"
+	"github.com/ZahakJ/astrolabe-cli/internal/tui"
 )
 
 // version is set at build time: -ldflags "-X main.version=v1.2.3".
@@ -33,7 +33,7 @@ func main() {
 }
 
 // hooks connects the verbs implemented outside internal/cli: the
-// interactive application (folio, folio NOTE, folio -, today, pick, new -o)
+// interactive application (astrolabe, astrolabe NOTE, astrolabe -, today, pick, new -o)
 // and the render/export verbs, which internal/tui implements on top of
 // internal/render and internal/export.
 func hooks() cli.Hooks {

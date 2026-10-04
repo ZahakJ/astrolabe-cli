@@ -62,10 +62,10 @@ func TestRecent(t *testing.T) {
 	dir := t.TempDir()
 	getenv := env(map[string]string{"XDG_STATE_HOME": dir, "HOME": "/nonexistent"})
 	file := RecentFile(getenv)
-	if file != filepath.Join(dir, "folio", "recent") {
+	if file != filepath.Join(dir, "astrolabe-cli", "recent") {
 		t.Fatalf("file %q", file)
 	}
-	if RecentFile(env(map[string]string{"HOME": "/h"})) != "/h/.local/state/folio/recent" {
+	if RecentFile(env(map[string]string{"HOME": "/h"})) != "/h/.local/state/astrolabe-cli/recent" {
 		t.Error("default state path")
 	}
 	r := LoadRecent(file) // missing: empty
@@ -110,7 +110,7 @@ func TestRecent(t *testing.T) {
 
 func TestConfig(t *testing.T) {
 	dir := t.TempDir()
-	getenv := env(map[string]string{"XDG_CONFIG_HOME": dir, "FOLIO_MEASURE": "64"})
+	getenv := env(map[string]string{"XDG_CONFIG_HOME": dir, "ASTROLABE_MEASURE": "64"})
 	file := ConfigFile(getenv)
 	c, err := LoadConfig(file, getenv)
 	if err != nil {
@@ -136,7 +136,7 @@ func TestConfig(t *testing.T) {
 	if string(b) != want {
 		t.Errorf("persist:\n%q\nwant\n%q", b, want)
 	}
-	nf := filepath.Join(dir, "new", "folio", "config")
+	nf := filepath.Join(dir, "new", "astrolabe-cli", "config")
 	if err := SetConfigValue(nf, "theme", "graphite"); err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +156,7 @@ func TestWelcome(t *testing.T) {
 		t.Error("written twice")
 	}
 	n := parseNote(WelcomeName, []byte(WelcomeNote), time.Time{}, int64(len(WelcomeNote)))
-	if n.Title != "Welcome to folio" || len(n.Tasks) != 3 || len(n.Headings) < 4 {
+	if n.Title != "Welcome to astrolabe" || len(n.Tasks) != 3 || len(n.Headings) < 4 {
 		t.Errorf("welcome parse: %q %d tasks %d headings", n.Title, len(n.Tasks), len(n.Headings))
 	}
 	for _, s := range []string{"> [!tip]", "| Keys |", "```sh", "[[Ideas]]", "Space f", "Esc Esc"} {
@@ -172,7 +172,7 @@ func TestWelcome(t *testing.T) {
 }
 
 func TestRecoveredBuffers(t *testing.T) {
-	dir := filepath.Join(t.TempDir(), "folio", "recovered")
+	dir := filepath.Join(t.TempDir(), "astrolabe", "recovered")
 	if got := UnseenRecovered(dir); got != nil {
 		t.Fatalf("empty dir: %v", got)
 	}
@@ -203,5 +203,49 @@ func TestRecoveredBuffers(t *testing.T) {
 	}
 	if got := RecoveredFiles(dir); len(got) != 2 {
 		t.Fatalf("files %v", got)
+	}
+}
+
+// The tool's former name: its config and state directories are read when
+// the new ones are absent, its marker and ignore file still count, and
+// nothing is moved.
+func TestFormerNameFallback(t *testing.T) {
+	home := t.TempDir()
+	getenv := env(map[string]string{"HOME": home})
+	if got := ConfigDir(getenv); got != filepath.Join(home, ".config", "astrolabe-cli") {
+		t.Errorf("fresh ConfigDir = %q", got)
+	}
+	old := filepath.Join(home, ".config", "folio")
+	oldState := filepath.Join(home, ".local", "state", "folio")
+	for _, d := range []string{old, oldState} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := ConfigDir(getenv); got != old {
+		t.Errorf("ConfigDir with only the old dir = %q", got)
+	}
+	if got := StateDir(getenv); got != oldState {
+		t.Errorf("StateDir with only the old dir = %q", got)
+	}
+	if err := os.MkdirAll(filepath.Join(home, ".config", "astrolabe-cli"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if got := ConfigDir(getenv); got != filepath.Join(home, ".config", "astrolabe-cli") {
+		t.Errorf("ConfigDir with both = %q", got)
+	}
+	if _, err := os.Stat(old); err != nil {
+		t.Error("old dir was touched")
+	}
+	// .folio/ still marks a vault; .folioignore is read when alone.
+	v := filepath.Join(home, "v")
+	os.MkdirAll(filepath.Join(v, ".folio"), 0o755)
+	os.MkdirAll(filepath.Join(v, "sub"), 0o755)
+	if dir, ok := findMarker(filepath.Join(v, "sub")); !ok || dir != v {
+		t.Errorf("findMarker = %q %v", dir, ok)
+	}
+	os.WriteFile(filepath.Join(v, ".folioignore"), []byte("drafts/\n"), 0o644)
+	if p := loadIgnore(v); len(p) != 1 || p[0] != "drafts/" {
+		t.Errorf("loadIgnore = %v", p)
 	}
 }

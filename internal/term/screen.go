@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"unicode/utf8"
 
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // Escape sequences for terminal modes, exported so callers (and tests) can
@@ -106,6 +106,10 @@ type Screen struct {
 
 	buf  []byte
 	body []byte
+
+	// Scratch rows for Encoder.BidiRuns (see runsRow).
+	emit   []Cell
+	runRow []text.RunCell
 }
 
 // NewScreen returns a w×h screen writing to out with encoder enc. The
@@ -404,6 +408,9 @@ func (s *Screen) Render(dst []byte) []byte {
 }
 
 // renderCells appends the changed cells (everything after Invalidate).
+// With Encoder.BidiRuns each row is first transformed into what must be
+// emitted (runsRow), and prev holds the emitted rows, so the diff compares
+// what the terminal was actually sent.
 func (s *Screen) renderCells(b []byte) []byte {
 	if s.invalid {
 		b = append(b, Reset...)
@@ -415,13 +422,18 @@ func (s *Screen) renderCells(b []byte) []byte {
 	tx, ty := -1, -1
 	for y := 0; y < s.h; y++ {
 		row := y * s.w
+		cells := s.cells[row : row+s.w]
+		if s.enc.BidiRuns {
+			cells = s.runsRow(cells)
+		}
+		prev := s.prev[row : row+s.w]
 		for x := 0; x < s.w; x++ {
-			c := s.cells[row+x]
+			c := cells[x]
 			if c.Width == 0 {
 				continue // continuation: drawn with its lead
 			}
-			if !s.invalid && c == s.prev[row+x] &&
-				(c.Width == 1 || x+1 >= s.w || s.cells[row+x+1] == s.prev[row+x+1]) {
+			if !s.invalid && c == prev[x] &&
+				(c.Width == 1 || x+1 >= s.w || cells[x+1] == prev[x+1]) {
 				continue
 			}
 			if tx != x || ty != y {
@@ -444,6 +456,7 @@ func (s *Screen) renderCells(b []byte) []byte {
 				tx = -1
 			}
 		}
+		copy(prev, cells)
 	}
 	if link != "" {
 		b = s.enc.AppendLink(b, "")
@@ -451,7 +464,6 @@ func (s *Screen) renderCells(b []byte) []byte {
 	if styled {
 		b = append(b, Reset...)
 	}
-	copy(s.prev, s.cells)
 	s.invalid = false
 	return b
 }

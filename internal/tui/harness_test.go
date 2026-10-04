@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/cli"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/term/termtest"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/cli"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/term/termtest"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // testNow is the fixed clock of the tests: the example vault's daily notes
@@ -134,7 +134,7 @@ func newHarness(t *testing.T, o harnessOpt) *harness {
 	return &harness{t: t, a: a, vt: vt, scr: scr, host: host, dir: o.dir, state: state}
 }
 
-// open starts the application as `folio NOTE` would.
+// open starts the application as `astrolabe NOTE` would.
 func (h *harness) start(mode cli.TUIMode, path string, line int) *harness {
 	h.a.start(cli.TUIRequest{Mode: mode, Path: path, Line: line, Vault: h.a.v})
 	h.frame()

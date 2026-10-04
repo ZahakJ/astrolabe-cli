@@ -234,3 +234,12 @@ func TestVisualRanges(t *testing.T) {
 		t.Fatalf("LTR: %q %v", v, r)
 	}
 }
+
+func TestVisualPath(t *testing.T) {
+	if got, want := VisualPath("يوميات/2026-10-03"), Visual("يوميات", LTR)+"/2026-10-03"; got != want {
+		t.Errorf("VisualPath = %q, want %q", got, want)
+	}
+	if VisualPath("a/b.md") != "a/b.md" {
+		t.Error("LTR path changed")
+	}
+}

@@ -47,6 +47,8 @@ type Matcher struct {
 
 	cand    []rune
 	offs    []int
+	fold    []byte
+	foffs   []int32
 	bonus   []int
 	h       []int32 // score matrix, rows = candidate runes, cols = pattern runes
 	consec  []int16 // consecutive-run length per cell
@@ -56,8 +58,11 @@ type Matcher struct {
 }
 
 // NewMatcher prepares a pattern. Space-separated terms must all match
-// (AND); positions from every term are merged. Matching is smart-case: case
-// insensitive unless the pattern contains an upper-case letter.
+// (AND, in any order); positions from every term are merged. Matching is
+// smart-case: case insensitive unless the pattern contains an upper-case
+// letter. Pattern and candidates are compared after search folding (see
+// FoldRune: harakat, alef forms, presentation forms, digits…), and
+// positions refer to the original candidate.
 func NewMatcher(pattern string) *Matcher {
 	m := &Matcher{}
 	for _, r := range pattern {
@@ -67,13 +72,10 @@ func NewMatcher(pattern string) *Matcher {
 		}
 	}
 	for _, f := range strings.Fields(pattern) {
-		rs := []rune(f)
-		if !m.caseSensitive {
-			for i, r := range rs {
-				rs[i] = unicode.ToLower(r)
-			}
+		b, _ := AppendFoldString(nil, nil, f, !m.caseSensitive)
+		if rs := []rune(string(b)); len(rs) > 0 {
+			m.terms = append(m.terms, rs)
 		}
-		m.terms = append(m.terms, rs)
 	}
 	return m
 }
@@ -98,10 +100,8 @@ func (m *Matcher) Match(candidate string) (Match, bool) {
 		total.Score += score
 		total.Positions = append(total.Positions, pos...)
 	}
-	if len(m.terms) > 1 {
-		sort.Ints(total.Positions)
-		total.Positions = dedupInts(total.Positions)
-	}
+	sort.Ints(total.Positions)
+	total.Positions = dedupInts(total.Positions)
 	return total, true
 }
 
@@ -148,19 +148,23 @@ func classOf(r rune) charClass {
 	return classSep
 }
 
-// prepare decodes the candidate, folds case and computes per-rune bonuses.
+// prepare folds the candidate and computes per-rune bonuses.
 func (m *Matcher) prepare(s string) {
 	m.cand = m.cand[:0]
 	m.offs = m.offs[:0]
 	m.bonus = m.bonus[:0]
+	m.fold, m.foffs = AppendFoldString(m.fold[:0], m.foffs[:0], s, !m.caseSensitive)
 	baseStart := strings.LastIndexByte(s, '/') + 1
 	prevClass := classSep
 	var prev rune = '/'
-	for off, r := range s {
+	for i := 0; i < len(m.fold); {
+		r, w := utf8.DecodeRune(m.fold[i:])
+		off := int(m.foffs[i])
+		i += w
 		cls := classOf(r)
 		b := 0
 		switch {
-		case off == 0:
+		case len(m.cand) == 0:
 			b = bonusStart
 		case cls != classSep && prev == '/':
 			b = bonusPathSep
@@ -176,15 +180,67 @@ func (m *Matcher) prepare(s string) {
 		if off >= baseStart {
 			b += bonusBasename
 		}
-		if !m.caseSensitive {
-			r = unicode.ToLower(r)
-		}
 		m.cand = append(m.cand, r)
 		m.offs = append(m.offs, off)
 		m.bonus = append(m.bonus, b)
 		prevClass = cls
 		prev = r
 	}
+	m.procliticBonus()
+}
+
+// Arabic proclitics: the article and the particles written attached to the
+// next word. A word after them starts a word for ranking purposes, so
+// "اسطرلاب" finds "الأسطرلاب" as a word-start match.
+var (
+	articles    = [][]rune{[]rune("وال"), []rune("بال"), []rune("كال"), []rune("فال"), []rune("لل"), []rune("ال")}
+	particles   = []rune("وبلفك")
+	bonusClitic = bonusBoundary - 2
+)
+
+func isArabicLetter(r rune) bool { return r >= 0x0620 && r <= 0x06FF && unicode.IsLetter(r) }
+
+func (m *Matcher) procliticBonus() {
+	n := len(m.cand)
+	for ws := 0; ws < n; ws++ {
+		if !isArabicLetter(m.cand[ws]) || (ws > 0 && classOf(m.cand[ws-1]) != classSep) {
+			continue
+		}
+		we := ws
+		for we < n && isArabicLetter(m.cand[we]) {
+			we++
+		}
+		done := false
+		for _, a := range articles {
+			if we-ws > len(a)+1 && runesHavePrefix(m.cand[ws:we], a) {
+				k := ws + len(a)
+				m.bonus[k] += bonusBoundary // mid-word until now
+				done = true
+				break
+			}
+		}
+		if !done && we-ws >= 4 {
+			for _, p := range particles {
+				if m.cand[ws] == p {
+					m.bonus[ws+1] += bonusClitic
+					break
+				}
+			}
+		}
+		ws = we
+	}
+}
+
+func runesHavePrefix(s, p []rune) bool {
+	if len(s) < len(p) {
+		return false
+	}
+	for i := range p {
+		if s[i] != p[i] {
+			return false
+		}
+	}
+	return true
 }
 
 const negInf = -1 << 30

@@ -17,12 +17,27 @@ var ConfigKeys = []string{
 	"daily_dir", "daily_format", "editor", "ascii",
 }
 
-// ConfigDir returns $XDG_CONFIG_HOME/folio, else ~/.config/folio.
+// ConfigDir returns $XDG_CONFIG_HOME/astrolabe-cli, else
+// ~/.config/astrolabe-cli. Back-compat: when that directory is absent and
+// the one of the tool's former name (folio) exists, that one is used as it
+// is; nothing is moved or copied.
 func ConfigDir(getenv func(string) string) string {
+	base := filepath.Join(getenv("HOME"), ".config")
 	if d := getenv("XDG_CONFIG_HOME"); d != "" && filepath.IsAbs(d) {
-		return filepath.Join(d, "folio")
+		base = d
 	}
-	return filepath.Join(getenv("HOME"), ".config", "folio")
+	return legacyDir(base, "astrolabe-cli", "folio")
+}
+
+// legacyDir returns base/name, or base/old when only that one exists.
+func legacyDir(base, name, old string) string {
+	dir := filepath.Join(base, name)
+	if _, err := os.Stat(dir); err != nil {
+		if fi, err := os.Stat(filepath.Join(base, old)); err == nil && fi.IsDir() {
+			return filepath.Join(base, old)
+		}
+	}
+	return dir
 }
 
 // ConfigFile returns the path of the optional config file.
@@ -31,21 +46,21 @@ func ConfigFile(getenv func(string) string) string {
 }
 
 // Config holds the optional configuration: "key = value" lines from the
-// config file, with environment overrides FOLIO_<KEY> (key upper-cased).
+// config file, with environment overrides ASTROLABE_<KEY> (key upper-cased).
 type Config struct {
 	// File is the path the config was read from.
 	File   string
 	values map[string]string
 	getenv func(string) string
-	// Unknown lists keys in the file that folio does not know, for the
-	// single warning in `folio doctor`.
+	// Unknown lists keys in the file that astrolabe does not know, for the
+	// single warning in `astrolabe doctor`.
 	Unknown []string
 	// Bad lists malformed lines as "line N: text".
 	Bad []string
 }
 
 // LoadConfig reads the config file; a missing file is not an error and
-// yields an empty Config. getenv supplies the FOLIO_<KEY> overrides (nil
+// yields an empty Config. getenv supplies the ASTROLABE_<KEY> overrides (nil
 // means no environment).
 func LoadConfig(file string, getenv func(string) string) (*Config, error) {
 	if getenv == nil {
@@ -102,11 +117,11 @@ func parseConfigLine(line string) (key, val string, ok, blank bool) {
 	return key, val, key != "", false
 }
 
-// Get returns the value for key: the environment variable FOLIO_<KEY> if
+// Get returns the value for key: the environment variable ASTROLABE_<KEY> if
 // set and non-empty, else the file value.
 func (c *Config) Get(key string) (string, bool) {
 	key = strings.ToLower(key)
-	if v := c.getenv("FOLIO_" + strings.ToUpper(key)); v != "" {
+	if v := c.getenv("ASTROLABE_" + strings.ToUpper(key)); v != "" {
 		return v, true
 	}
 	v, ok := c.values[key]

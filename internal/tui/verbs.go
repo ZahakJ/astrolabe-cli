@@ -7,13 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/cli"
-	"github.com/ZahakJ/folio/internal/export"
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/render"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/cli"
+	"github.com/ZahakJ/astrolabe-cli/internal/export"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/render"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // waitScan waits for the vault's scan so links resolve, giving up after a
@@ -43,7 +43,7 @@ func titleOf(name, rel string) string {
 	return strings.TrimSuffix(path.Base(name), ".md")
 }
 
-// Render is the cli.Hooks.Render entry point (`folio render`): ANSI for a
+// Render is the cli.Hooks.Render entry point (`astrolabe render`): ANSI for a
 // terminal (or forced colour), plain text into a pipe. Piped output is never
 // reordered or shaped (DESIGN.md §6).
 func Render(ctx context.Context, req cli.RenderRequest) error {
@@ -95,7 +95,7 @@ func Render(ctx context.Context, req cli.RenderRequest) error {
 	return w.Flush()
 }
 
-// Export is the cli.Hooks.Export entry point (`folio export`): one
+// Export is the cli.Hooks.Export entry point (`astrolabe export`): one
 // standalone HTML document.
 func Export(ctx context.Context, req cli.ExportRequest) error {
 	waitScan(ctx, req.Vault)
@@ -104,7 +104,7 @@ func Export(ctx context.Context, req cli.ExportRequest) error {
 		Path:      req.Path,
 		Title:     titleOf(req.Name, req.Path),
 		Resolver:  &resolver{v: req.Vault, from: req.Path},
-		Generator: "folio",
+		Generator: "astrolabe",
 	}
 	if req.Path != "" && req.Vault != nil {
 		opt.Backlinks = req.Vault.BacklinkCount(req.Path)

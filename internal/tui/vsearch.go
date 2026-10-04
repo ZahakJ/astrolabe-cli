@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // searchDebounce is how long typing must pause before the vault is searched.
@@ -190,7 +190,7 @@ func (o *vaultSearch) draw(a *app) {
 	}
 	sw := text.Width(status)
 	s.PutString(in.X+in.W-sw, in.Y, status, a.st.pFaint)
-	cx := o.in.draw(s, x, in.Y, in.X+in.W-sw-1-x, a.st.panel)
+	cx := o.in.draw(s, x, in.Y, in.X+in.W-sw-1-x, a.st.panel, a.bidi)
 	if o.in.text == "" {
 		s.PutStringClip(x, in.Y, "words, \"re:\" regexp, tag:x path:x title:x", a.st.pFaint, in.X+in.W)
 	}
@@ -240,8 +240,7 @@ func (o *vaultSearch) drawResult(a *app, r term.Rect, res vault.Result, sel bool
 	if title == "" {
 		title = noteName(res.Path)
 	}
-	title = a.dispS(title)
-	where := a.dispS(strings.TrimSuffix(res.Path, ".md"))
+	where := a.dispPath(strings.TrimSuffix(res.Path, ".md"))
 	if res.Line > 0 {
 		where += ":" + itoa(res.Line)
 	}
@@ -249,7 +248,7 @@ func (o *vaultSearch) drawResult(a *app, r term.Rect, res vault.Result, sel bool
 	res.Text, res.Matches = md.CleanLine(res.Text, res.Matches)
 	if r.H == 1 {
 		// Compact: title, then the context.
-		x := s.PutStringClip(r.X, r.Y, text.Truncate(title, r.W/3, a.gl.Ellipsis), mu, maxX)
+		x := s.PutStringClip(r.X, r.Y, a.dispFit(title, r.W/3), mu, maxX)
 		x += 2
 		ctxText, ranges := contextAround(res, maxX-x, a.gl.Ellipsis)
 		ctxText, ranges = a.dispRanges(ctxText, ranges)
@@ -260,13 +259,15 @@ func (o *vaultSearch) drawResult(a *app, r term.Rect, res vault.Result, sel bool
 	if res.Class == vault.RankTitle {
 		ranges := res.Matches
 		if res.Title != "" {
-			title, ranges = a.dispRanges(res.Title, res.Matches)
+			title, ranges = a.dispRangesFit(res.Title, res.Matches, r.W-2)
+		} else {
+			title = a.dispFit(title, r.W-2)
 		}
-		a.putRanges(x, r.Y, text.Truncate(title, r.W-2, a.gl.Ellipsis), st.With(boldAttr), hl.With(boldAttr), ranges, maxX)
+		a.putRanges(x, r.Y, title, st.With(boldAttr), hl.With(boldAttr), ranges, maxX)
 		s.PutStringClip(r.X, r.Y+1, text.TruncateLeft(where, r.W, a.gl.Ellipsis), fa, maxX)
 		return
 	}
-	x = s.PutStringClip(x, r.Y, text.Truncate(title, r.W*2/3, a.gl.Ellipsis), st.With(boldAttr), maxX)
+	x = s.PutStringClip(x, r.Y, a.dispFit(title, r.W*2/3), st.With(boldAttr), maxX)
 	pw := text.Width(where)
 	if x+2+pw > maxX {
 		where = text.TruncateLeft(where, max(0, maxX-x-2), a.gl.Ellipsis)

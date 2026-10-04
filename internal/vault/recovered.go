@@ -9,13 +9,13 @@ import (
 	"time"
 )
 
-// Recovered buffers: when folio is terminated (SIGHUP when the terminal
+// Recovered buffers: when astrolabe is terminated (SIGHUP when the terminal
 // window closes, SIGTERM) with unsaved edits in the built-in editor and the
 // note cannot be written safely (it changed on disk since it was read, or
 // the write fails), the buffer is written here instead of being lost. This
 // is outside the vault, like the recent-notes file (DESIGN.md §2).
 
-// RecoveredDir returns $XDG_STATE_HOME/folio/recovered.
+// RecoveredDir returns $XDG_STATE_HOME/astrolabe/recovered.
 func RecoveredDir(getenv func(string) string) string {
 	return filepath.Join(StateDir(getenv), "recovered")
 }

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="160" height="160" color="#e3b341" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" role="img" aria-label="Astrolabe">
+  <title>Astrolabe</title>
+  <circle cx="50" cy="9" r="5" stroke-width="2.6"/>
+  <circle cx="50" cy="55" r="40" stroke-width="4"/>
+  <circle cx="50" cy="55" r="28" stroke-width="1.6"/>
+  <circle cx="50" cy="55" r="16" stroke-width="1.6"/>
+  <path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/>
+  <path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/>
+  <circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/>
+  <path d="M68.74 29.99 Q68.74 34.19 69.57 33.36 L72.94 34.19 Q68.74 34.19 69.57 35.02 L68.74 38.39 Q68.74 34.19 67.90 35.02 L64.54 34.19 Q68.74 34.19 67.90 33.36 Z" fill="currentColor" stroke="none"/>
+</svg>

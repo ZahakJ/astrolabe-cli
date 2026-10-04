@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/term/termtest"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/term/termtest"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 	"golang.org/x/sys/unix"
 )
 
@@ -145,14 +145,14 @@ func TestTerminalSession(t *testing.T) {
 
 	// Drawing.
 	sc := tm.Screen()
-	sc.PutString(1, 1, "folio ✦ 日本", theme.Style{FG: theme.Hex("#c9a227")})
+	sc.PutString(1, 1, "astrolabe ✦ 日本", theme.Style{FG: theme.Hex("#c9a227")})
 	sc.SetCursor(3, 4)
 	sc.ShowCursor(true)
 	sc.SetCursorShape(CursorBar)
 	if err := tm.Flush(); err != nil {
 		t.Fatal(err)
 	}
-	eventually(t, "drawn text", func() bool { return strings.HasPrefix(h.vt.Row(1), " folio ✦ 日本") })
+	eventually(t, "drawn text", func() bool { return strings.HasPrefix(h.vt.Row(1), " astrolabe ✦ 日本") })
 	eventually(t, "cursor", func() bool { x, y := h.vt.Cursor(); return x == 3 && y == 4 && h.vt.CursorShape() == 6 })
 
 	// Keys, including a sequence split across writes.
@@ -312,7 +312,7 @@ func TestTerminalPauseWhileAppBusy(t *testing.T) {
 // window closing): the hook must run before the process dies of the
 // signal, and the terminal must be restored.
 func TestTerminalSignalHook(t *testing.T) {
-	if out := os.Getenv("FOLIO_TERM_SIGNAL_CHILD"); out != "" {
+	if out := os.Getenv("ASTROLABE_TERM_SIGNAL_CHILD"); out != "" {
 		signalChild(t, out)
 		return
 	}
@@ -327,7 +327,7 @@ func TestTerminalSignalHook(t *testing.T) {
 	}()
 	out := filepath.Join(t.TempDir(), "hook")
 	cmd := exec.Command(os.Args[0], "-test.run=^TestTerminalSignalHook$")
-	cmd.Env = append(os.Environ(), "FOLIO_TERM_SIGNAL_CHILD="+out, "FOLIO_TERM_SIGNAL_TTY="+slave)
+	cmd.Env = append(os.Environ(), "ASTROLABE_TERM_SIGNAL_CHILD="+out, "ASTROLABE_TERM_SIGNAL_TTY="+slave)
 	if err := cmd.Start(); err != nil {
 		t.Fatal(err)
 	}
@@ -360,7 +360,7 @@ func TestTerminalSignalHook(t *testing.T) {
 }
 
 func signalChild(t *testing.T, out string) {
-	tm, err := Open(OpenOptions{TTYPath: os.Getenv("FOLIO_TERM_SIGNAL_TTY"), OnSignal: func(sig os.Signal) {
+	tm, err := Open(OpenOptions{TTYPath: os.Getenv("ASTROLABE_TERM_SIGNAL_TTY"), OnSignal: func(sig os.Signal) {
 		os.WriteFile(out, []byte(sig.String()), 0o644)
 	}})
 	if err != nil {

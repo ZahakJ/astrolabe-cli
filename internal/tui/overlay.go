@@ -5,10 +5,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/md"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/md"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // overlay is a centred raised panel above the page (DESIGN.md §4.2). The app
@@ -192,7 +192,7 @@ func (p *textPrompt) draw(a *app) {
 	s := a.scr
 	x := s.PutString(in.X, in.Y, p.prompt, a.st.pAccent)
 	x++
-	cx := p.in.draw(s, x, in.Y, in.X+in.W-x, a.st.panel)
+	cx := p.in.draw(s, x, in.Y, in.X+in.W-x, a.st.panel, a.bidi)
 	if p.hint != nil {
 		s.PutStringClip(in.X, in.Y+2, p.hint(a, p), a.st.pFaint, in.X+in.W)
 	}

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
 	"os"
 	"regexp"
 	"runtime"
@@ -195,11 +196,7 @@ func hasUpper(s string) bool {
 func newTerm(s string) Term {
 	cs := hasUpper(s)
 	t := Term{Text: s, CaseSensitive: cs}
-	if cs {
-		t.needle = []byte(s)
-	} else {
-		t.needle = foldBytes(nil, []byte(s))
-	}
+	t.needle, _ = text.AppendFoldString(nil, nil, s, !cs)
 	return t
 }
 
@@ -237,79 +234,69 @@ func newRegexpTerm(p string) (Term, error) {
 	return Term{Text: p, Regexp: re, CaseSensitive: cs, whole: whole}, nil
 }
 
-// foldBytes appends a lower-cased copy of src to dst in which every rune
-// keeps its UTF-8 length, so byte offsets in the folded text are offsets
-// in the original. (The rare runes whose lower case has a different
-// length are left as they are.)
-func foldBytes(dst, src []byte) []byte {
-	start := len(dst)
-	dst = append(dst, src...)
-	out := dst[start:]
-	for i := 0; i < len(out); {
-		c := out[i]
-		if c < utf8.RuneSelf {
-			if 'A' <= c && c <= 'Z' {
-				out[i] = c + 32
-			}
-			i++
-			continue
-		}
-		r, w := utf8.DecodeRune(out[i:])
-		if lr := unicode.ToLower(r); lr != r && utf8.RuneLen(lr) == w {
-			utf8.EncodeRune(out[i:], lr)
-		}
-		i += w
-	}
-	return dst
+// Substring terms compare search folds (text.AppendFold: case, Arabic
+// harakat, alef forms, presentation forms, digits, NFC): a file is folded
+// once per case mode to test the terms, and each matching line again to
+// map match ranges back to the original bytes. Regexp terms stay literal.
+
+// folds holds a file's (or line's) search folds, built on demand.
+type folds struct {
+	src                []byte
+	lower, exact       []byte
+	lowerOff, exactOff []int32
+	haveLower, haveEx  bool
 }
 
-// match reports whether the term occurs in hay (raw) / foldedHay.
-func (t *Term) match(raw, folded []byte) bool {
+func (f *folds) reset(src []byte) {
+	f.src = src
+	f.haveLower, f.haveEx = false, false
+}
+
+func (f *folds) get(lower bool) ([]byte, []int32) {
+	if lower {
+		if !f.haveLower {
+			f.lower, f.lowerOff = text.AppendFold(f.lower[:0], f.lowerOff[:0], f.src, true)
+			f.haveLower = true
+		}
+		return f.lower, f.lowerOff
+	}
+	if !f.haveEx {
+		f.exact, f.exactOff = text.AppendFold(f.exact[:0], f.exactOff[:0], f.src, false)
+		f.haveEx = true
+	}
+	return f.exact, f.exactOff
+}
+
+// match reports whether the term occurs in the text of f.
+func (t *Term) match(f *folds) bool {
 	if t.Regexp != nil {
-		return t.whole.Match(raw)
+		return t.whole.Match(f.src)
 	}
-	if t.CaseSensitive {
-		return bytes.Contains(raw, t.needle)
-	}
-	return bytes.Contains(folded, t.needle)
+	hay, _ := f.get(!t.CaseSensitive)
+	return bytes.Contains(hay, t.needle)
 }
 
 func (t *Term) matchString(s string) bool {
 	if t.Regexp != nil {
 		return t.Regexp.MatchString(s)
 	}
-	if t.CaseSensitive {
-		return strings.Contains(s, string(t.needle))
-	}
-	return bytes.Contains(foldBytes(nil, []byte(s)), t.needle)
+	hay, _ := text.AppendFoldString(nil, nil, s, !t.CaseSensitive)
+	return bytes.Contains(hay, t.needle)
 }
 
-// ranges appends the match ranges of t in one line.
-func (t *Term) ranges(dst [][2]int, raw, folded []byte) [][2]int {
+// ranges appends the match ranges of t in one line (byte ranges of the
+// original line).
+func (t *Term) ranges(dst [][2]int, f *folds) [][2]int {
 	if t.Regexp != nil {
-		for _, m := range t.Regexp.FindAllIndex(raw, -1) {
+		for _, m := range t.Regexp.FindAllIndex(f.src, -1) {
 			if m[1] > m[0] {
 				dst = append(dst, [2]int{m[0], m[1]})
 			}
 		}
 		return dst
 	}
-	hay := folded
-	if t.CaseSensitive {
-		hay = raw
-	}
-	if len(t.needle) == 0 {
-		return dst
-	}
-	for off := 0; off < len(hay); {
-		i := bytes.Index(hay[off:], t.needle)
-		if i < 0 {
-			break
-		}
-		dst = append(dst, [2]int{off + i, off + i + len(t.needle)})
-		off += i + len(t.needle)
-	}
-	return dst
+	hay, offs := f.get(!t.CaseSensitive)
+	return text.FoldedRanges(dst, hay, offs, len(f.src), t.needle)
 }
 
 // SearchOptions configure Search.
@@ -365,7 +352,7 @@ func (v *Vault) SearchQuery(ctx context.Context, q *Query, opts SearchOptions) (
 		go func() {
 			defer wg.Done()
 			var local []Result
-			var fold []byte
+			var fold folds
 			for f := range jobs {
 				if ctx.Err() != nil {
 					continue
@@ -439,7 +426,7 @@ func (v *Vault) searchFiles(ctx context.Context) ([]searchFile, error) {
 }
 
 // searchOne searches one file, appending its results.
-func searchOne(q *Query, f searchFile, out []Result, fold []byte) ([]Result, []byte) {
+func searchOne(q *Query, f searchFile, out []Result, fold folds) ([]Result, folds) {
 	raw, err := os.ReadFile(f.abs)
 	if err != nil {
 		return out, fold
@@ -478,34 +465,24 @@ func searchOne(q *Query, f searchFile, out []Result, fold []byte) ([]Result, []b
 	if len(q.Terms) == 0 {
 		return append(out, titleResult(note, f, nil)), fold
 	}
-	needFold := false
-	for _, t := range q.Terms {
-		if t.Regexp == nil && !t.CaseSensitive {
-			needFold = true
-		}
-	}
-	var folded []byte
-	if needFold {
-		fold = foldBytes(fold[:0], raw)
-		folded = fold
-	}
+	fold.reset(raw)
 	// Note-level AND: every term in the text or the title.
 	titleAll := true
 	for i := range q.Terms {
 		t := &q.Terms[i]
 		inTitle := t.matchString(title)
 		titleAll = titleAll && inTitle
-		if !inTitle && !t.match(raw, folded) {
+		if !inTitle && !t.match(&fold) {
 			return out, fold
 		}
 	}
 	titleLine := 0
 	if titleAll {
 		var rs [][2]int
-		tb := []byte(title)
-		ft := foldBytes(nil, tb)
+		var tf folds
+		tf.reset([]byte(title))
 		for i := range q.Terms {
-			rs = q.Terms[i].ranges(rs, tb, ft)
+			rs = q.Terms[i].ranges(rs, &tf)
 		}
 		r := titleResult(note, f, mergeRanges(rs))
 		titleLine = r.Line
@@ -520,6 +497,7 @@ func searchOne(q *Query, f searchFile, out []Result, fold []byte) ([]Result, []b
 		all    bool
 	}
 	var hits []hit
+	var lineFold folds
 	anyAll := false
 	inFence := false
 	var fenceCh byte
@@ -540,10 +518,6 @@ func searchOne(q *Query, f searchFile, out []Result, fold []byte) ([]Result, []b
 		if len(lineRaw) > 0 && lineRaw[len(lineRaw)-1] == '\r' {
 			lineRaw = lineRaw[:len(lineRaw)-1]
 		}
-		var lineFold []byte
-		if folded != nil {
-			lineFold = folded[off : off+len(lineRaw)]
-		}
 		off = next
 		isFence := false
 		if len(lineRaw) >= 3 && bytes.IndexAny(lineRaw, "`~") >= 0 {
@@ -563,9 +537,10 @@ func searchOne(q *Query, f searchFile, out []Result, fold []byte) ([]Result, []b
 		}
 		var rs [][2]int
 		matched := 0
+		lineFold.reset(lineRaw)
 		for i := range q.Terms {
 			before := len(rs)
-			rs = q.Terms[i].ranges(rs, lineRaw, lineFold)
+			rs = q.Terms[i].ranges(rs, &lineFold)
 			if len(rs) > before {
 				matched++
 			}

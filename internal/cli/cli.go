@@ -1,10 +1,10 @@
-// Package cli implements folio's shell face: the dispatcher for the command
+// Package cli implements astrolabe's shell face: the dispatcher for the command
 // line and every non-interactive verb of DESIGN.md §4.1 (add, new, today -p,
 // find, ls, tags, tasks, links, backlinks, path, doctor, help, version).
 //
-// The interactive entry points (folio, folio NOTE, folio -, folio today,
-// folio pick, folio new -o) and the render/export verbs live in packages that
-// cli does not import. They are reached through Hooks, which cmd/folio fills
+// The interactive entry points (astrolabe, astrolabe NOTE, astrolabe -, astrolabe today,
+// astrolabe pick, astrolabe new -o) and the render/export verbs live in packages that
+// cli does not import. They are reached through Hooks, which cmd/astrolabe fills
 // in; a nil hook makes the verb fail with ErrNotBuilt before any side effect.
 //
 // Conventions (DESIGN.md §4.1):
@@ -34,9 +34,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // Exit codes.
@@ -55,7 +55,7 @@ var ErrNotBuilt = errors.New("not built into this binary yet")
 // then exits with ExitCancelled and prints nothing.
 var ErrCancelled = errors.New("cancelled")
 
-// Env is everything a run of folio reads from the outside world, so that the
+// Env is everything a run of astrolabe reads from the outside world, so that the
 // whole command line can be exercised in-process by tests.
 type Env struct {
 	// Args are the command-line arguments without the program name.
@@ -83,7 +83,7 @@ type Env struct {
 	// Width overrides the terminal width used for human output (0 = detect).
 	Width int
 
-	// Version is the build version printed by `folio version`.
+	// Version is the build version printed by `astrolabe version`.
 	Version string
 
 	// Hooks connect the verbs implemented outside this package.
@@ -91,7 +91,7 @@ type Env struct {
 }
 
 // Hooks are the entry points implemented by other packages (internal/tui,
-// internal/render, internal/export). cmd/folio fills them in. A nil hook
+// internal/render, internal/export). cmd/astrolabe fills them in. A nil hook
 // makes the verbs that need it fail with ErrNotBuilt (exit 1) before any
 // side effect such as creating a note.
 type Hooks struct {
@@ -109,7 +109,7 @@ type Hooks struct {
 // Display carries the presentation settings resolved from flags, the
 // environment and the config file, for the hooks to use.
 type Display struct {
-	// ThemeName is the selected theme (flag --theme, FOLIO_THEME, config
+	// ThemeName is the selected theme (flag --theme, ASTROLABE_THEME, config
 	// theme, else the default) and Theme its authored 24-bit tokens.
 	// Renderers apply term.ThemeFor(Theme, Caps.Profile) and, when Ground
 	// is false, Theme.WithoutGround().
@@ -138,23 +138,23 @@ type TUIMode int
 
 // TUI modes, one per interactive entry point of DESIGN.md §4.1.
 const (
-	// ModeDefault is plain `folio`. The CLI has already chosen the note:
+	// ModeDefault is plain `astrolabe`. The CLI has already chosen the note:
 	// today's daily note if it exists, else the most recent note of this
 	// vault from the recent file (Path and Line set), else Path is empty
 	// and the home screen should be shown.
 	ModeDefault TUIMode = iota
-	// ModeOpen is `folio NOTE`: open Path (at Line when non-zero).
+	// ModeOpen is `astrolabe NOTE`: open Path (at Line when non-zero).
 	ModeOpen
-	// ModeStdin is `folio -`: page Source (read from stdin) in the reader.
+	// ModeStdin is `astrolabe -`: page Source (read from stdin) in the reader.
 	// Path is empty; Name is "-".
 	ModeStdin
-	// ModeToday is `folio today`: Path is today's daily note, already
+	// ModeToday is `astrolabe today`: Path is today's daily note, already
 	// created if it was missing.
 	ModeToday
-	// ModePick is `folio pick [QUERY]`: show the fuzzy note picker with
+	// ModePick is `astrolabe pick [QUERY]`: show the fuzzy note picker with
 	// Query pre-filled, return the chosen path, ErrCancelled on Esc.
 	ModePick
-	// ModeEdit is `folio new -o`: open the freshly created Path in the
+	// ModeEdit is `astrolabe new -o`: open the freshly created Path in the
 	// built-in editor.
 	ModeEdit
 )
@@ -258,7 +258,7 @@ type ExportRequest struct {
 	Out io.Writer
 }
 
-// Run executes one folio command line and returns the process exit code.
+// Run executes one astrolabe command line and returns the process exit code.
 func Run(env Env) int {
 	a := newApp(env)
 	return a.run()
@@ -278,7 +278,7 @@ type app struct {
 	v    *vault.Vault
 	disp *Display
 	pt   *painter
-	// firstArg is set while resolving `folio NOTE` (the first argument),
+	// firstArg is set while resolving `astrolabe NOTE` (the first argument),
 	// where an unknown word may be a mistyped verb.
 	firstArg bool
 	scanned  bool
@@ -345,9 +345,9 @@ func (a *app) finish(err error) int {
 			fmt.Fprintf(a.env.Stderr, "usage: %s\n", line)
 		}
 		if ue.verb != "" {
-			fmt.Fprintf(a.env.Stderr, "Run 'folio help %s' for details.\n", ue.verb)
+			fmt.Fprintf(a.env.Stderr, "Run 'astrolabe help %s' for details.\n", ue.verb)
 		} else {
-			fmt.Fprintf(a.env.Stderr, "Run 'folio help' for the list of commands.\n")
+			fmt.Fprintf(a.env.Stderr, "Run 'astrolabe help' for the list of commands.\n")
 		}
 		return ExitUsage
 	case errors.As(err, &nf):
@@ -360,16 +360,16 @@ func (a *app) finish(err error) int {
 	return ExitNotFound
 }
 
-// errorf prints "folio: message" on stderr.
+// errorf prints "astrolabe: message" on stderr.
 func (a *app) errorf(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
-	fmt.Fprintf(a.env.Stderr, "folio: %s\n", strings.TrimRight(msg, "\n"))
+	fmt.Fprintf(a.env.Stderr, "astrolabe: %s\n", strings.TrimRight(msg, "\n"))
 }
 
 // infof prints an informational message on stderr only when stderr is a
 // terminal (so pipelines stay quiet).
 func (a *app) infof(format string, args ...any) {
 	if a.env.StderrTTY {
-		fmt.Fprintf(a.env.Stderr, "folio: %s\n", fmt.Sprintf(format, args...))
+		fmt.Fprintf(a.env.Stderr, "astrolabe: %s\n", fmt.Sprintf(format, args...))
 	}
 }

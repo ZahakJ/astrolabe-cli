@@ -9,8 +9,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // noteRef is a resolved NOTE argument.
@@ -25,7 +25,7 @@ type noteRef struct {
 // alias resolved like a wikilink; else a fuzzy match if exactly one note
 // matches. "Note#Heading", "Note#^block" and "path:LINE" suffixes give a
 // line. A file outside the current vault switches to that file's vault
-// (vault.ResolveFileRoot), as `folio some/file.md` does.
+// (vault.ResolveFileRoot), as `astrolabe some/file.md` does.
 //
 // Failure is a *notFound error listing the nearest notes.
 func (a *app) resolveNote(arg string) (noteRef, error) {
@@ -181,12 +181,12 @@ func (a *app) noteNotFound(arg string, cands []fuzzyCand, v *vault.Vault) error 
 	var b strings.Builder
 	var near []*vault.Note
 	// A mistyped verb is the likelier mistake: say so first, before any
-	// note matches (`folio tsks`).
+	// note matches (`astrolabe tsks`).
 	verb := nearestVerb(arg)
 	if a.firstArg {
 		w := firstWord(arg)
 		if v := nearestVerb(w); v != "" {
-			fmt.Fprintf(&b, "did you mean `folio %s`?\n", strings.TrimSpace(v+" "+strings.TrimSpace(arg[len(w):])))
+			fmt.Fprintf(&b, "did you mean `astrolabe %s`?\n", strings.TrimSpace(v+" "+strings.TrimSpace(arg[len(w):])))
 		}
 	}
 	if len(cands) > 1 {
@@ -208,7 +208,7 @@ func (a *app) noteNotFound(arg string, cands []fuzzyCand, v *vault.Vault) error 
 		}
 	}
 	if verb != "" && !a.firstArg {
-		fmt.Fprintf(&b, "\n  did you mean: folio %s", verb)
+		fmt.Fprintf(&b, "\n  did you mean: astrolabe %s", verb)
 	}
 	if len(near) > 0 {
 		b.WriteString("\n  nearest notes:")
@@ -236,15 +236,15 @@ func nearestNotes(notes []*vault.Note, arg string, k int) []*vault.Note {
 		n *vault.Note
 		d int
 	}
-	q := strings.ToLower(arg)
+	q := text.Fold(arg)
 	limit := max(2, utf8.RuneCountInString(q)/2)
 	var s []scored
 	for _, n := range notes {
-		d := levenshtein(q, strings.ToLower(n.Title))
-		base := strings.ToLower(strings.TrimSuffix(filepath.Base(n.Path), ".md"))
+		d := levenshtein(q, text.Fold(n.Title))
+		base := text.Fold(strings.TrimSuffix(filepath.Base(n.Path), ".md"))
 		d = min(d, levenshtein(q, base))
 		for _, al := range n.Aliases {
-			d = min(d, levenshtein(q, strings.ToLower(al)))
+			d = min(d, levenshtein(q, text.Fold(al)))
 		}
 		if d <= limit {
 			s = append(s, scored{n, d})
@@ -284,7 +284,7 @@ func nearestVerb(arg string) string {
 
 // typoVerb returns the verb a first argument is a typo of: within edit
 // distance 2 of it but not one of its prefixes (DESIGN.md §4.1: unique verb
-// prefixes are not verbs, so `folio ad` may still open add.md). Such an
+// prefixes are not verbs, so `astrolabe ad` may still open add.md). Such an
 // argument is not opened by a fuzzy match; it gets the suggestion instead.
 func typoVerb(arg string) string {
 	a := strings.ToLower(arg)

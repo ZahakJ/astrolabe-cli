@@ -41,7 +41,7 @@ type Vault struct {
 
 // Open returns the vault rooted at dir without scanning it. dir need not
 // exist yet (a fresh ~/notes is created on first write). Open reads only
-// the small .folioignore and .obsidian/daily-notes.json files.
+// the small .astrolabeignore and .obsidian/daily-notes.json files.
 func Open(dir string) (*Vault, error) {
 	abs, err := filepath.Abs(dir)
 	if err != nil {
@@ -164,7 +164,7 @@ type walkEntry struct {
 }
 
 // walk lists the vault's files, applying the scan rules of DESIGN.md §3:
-// dot-directories, node_modules and .folioignore matches are skipped; file
+// dot-directories, node_modules and .astrolabeignore matches are skipped; file
 // symlinks are followed, directory symlinks are not.
 //
 // Names containing control characters (a newline, a tab, ESC…) are skipped
@@ -568,14 +568,17 @@ func (v *Vault) WriteNote(rel string, data []byte, expect *StatToken) (StatToken
 	return tok, nil
 }
 
-// ---- .folioignore ----
+// ---- .astrolabeignore ----
 
-// loadIgnore reads the top-level .folioignore: one glob per line, '#'
+// loadIgnore reads the top-level .astrolabeignore: one glob per line, '#'
 // comments and blank lines ignored.
 func loadIgnore(root string) []string {
-	data, err := os.ReadFile(filepath.Join(root, ".folioignore"))
+	data, err := os.ReadFile(filepath.Join(root, ".astrolabeignore"))
 	if err != nil {
-		return nil
+		// The former name's ignore file, read when the new one is absent.
+		if data, err = os.ReadFile(filepath.Join(root, ".folioignore")); err != nil {
+			return nil
+		}
 	}
 	var pats []string
 	for _, line := range strings.Split(string(data), "\n") {
@@ -588,7 +591,7 @@ func loadIgnore(root string) []string {
 	return pats
 }
 
-// ignored reports whether rel matches a .folioignore pattern. Semantics
+// ignored reports whether rel matches a .astrolabeignore pattern. Semantics
 // (gitignore-like, as the design is silent): a pattern without '/' matches
 // the name of a file or directory at any depth; a pattern containing '/'
 // is matched against the whole relative path (a leading '/' is optional);

@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/export"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
-	"github.com/ZahakJ/folio/internal/vault"
+	"github.com/ZahakJ/astrolabe-cli/internal/export"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // cmdPrompt is the reader's one-line ":" command line or "/" search line,
@@ -140,7 +140,7 @@ func (a *app) drawPrompt(y int) {
 		s.PutString(right+1, y, hint, a.st.sFaint)
 		right -= 1
 	}
-	cx := p.in.draw(s, x, y, right-x, st)
+	cx := p.in.draw(s, x, y, right-x, st, a.bidi)
 	s.SetCursor(cx, y)
 	s.SetCursorShape(term.CursorBar)
 	s.ShowCursor(true)
@@ -203,7 +203,7 @@ func (a *app) complete(forward bool) {
 // noteCompletions lists note names (paths without .md) starting with
 // prefix, or whose base name does, shortest first.
 func (a *app) noteCompletions(prefix string) []string {
-	lp := strings.ToLower(prefix)
+	lp := text.Fold(prefix) // Arabic-insensitive, like every search
 	type cand struct {
 		name string
 		rank int
@@ -211,11 +211,11 @@ func (a *app) noteCompletions(prefix string) []string {
 	var cs []cand
 	for _, n := range a.v.Notes() {
 		name := strings.TrimSuffix(n.Path, ".md")
-		ln := strings.ToLower(name)
+		ln := text.Fold(name)
 		switch {
 		case strings.HasPrefix(ln, lp):
 			cs = append(cs, cand{name, 0})
-		case strings.HasPrefix(strings.ToLower(path.Base(name)), lp):
+		case strings.HasPrefix(text.Fold(path.Base(name)), lp):
 			cs = append(cs, cand{name, 1})
 		case lp != "" && strings.Contains(ln, lp):
 			cs = append(cs, cand{name, 2})
@@ -271,7 +271,7 @@ func (a *app) exCommand(cmdline string, fromEditor bool) {
 		a.requestQuit()
 	case "w", "write", "w!":
 		if fromEditor {
-			a.flashErr(":w FILE is not supported; folio saves the note in place")
+			a.flashErr(":w FILE is not supported; astrolabe saves the note in place")
 			return
 		}
 		a.flash("nothing to write: the reader never changes the file (i edits)")
@@ -454,7 +454,7 @@ func (a *app) exportCurrent(file string) {
 	if a.view == viewEditor && a.edit != nil {
 		src = a.edit.ed.Text()
 	}
-	opt := export.Options{Path: d.path, Title: d.name, Resolver: &resolver{v: a.v, from: d.path}, Today: a.now(), Generator: "folio"}
+	opt := export.Options{Path: d.path, Title: d.name, Resolver: &resolver{v: a.v, from: d.path}, Today: a.now(), Generator: "astrolabe"}
 	if !d.stdin {
 		opt.Backlinks = a.v.BacklinkCount(d.path)
 	}

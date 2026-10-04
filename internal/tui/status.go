@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ZahakJ/folio/internal/editor"
-	"github.com/ZahakJ/folio/internal/term"
-	"github.com/ZahakJ/folio/internal/text"
-	"github.com/ZahakJ/folio/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/editor"
+	"github.com/ZahakJ/astrolabe-cli/internal/term"
+	"github.com/ZahakJ/astrolabe-cli/internal/text"
+	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
 // wordsPerMinute sets the reading-time estimate.
@@ -71,7 +71,7 @@ func (a *app) drawStatus(y int) {
 			st = a.st.sDanger
 		}
 		// Messages often quote a note title or path, which may be Arabic.
-		s.PutStringClip(1, y, text.Truncate(a.dispS(oneLine(a.msg.text)), limit-1, a.gl.Ellipsis), st, limit)
+		s.PutStringClip(1, y, a.dispMsg(oneLine(a.msg.text), limit-1), st, limit)
 		return
 	}
 	a.drawCrumb(y, limit, narrow)
