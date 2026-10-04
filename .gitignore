@@ -1,0 +1,17 @@
+# Build output
+/dist/
+/folio
+*.test
+*.out
+*.prof
+/coverage.*
+
+# Go fuzzing corpora generated locally (checked-in seeds live in testdata/)
+/internal/*/testdata/fuzz/*/cache
+
+# Editors and OS
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/

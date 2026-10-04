@@ -1,0 +1,26 @@
+   Left        │ Centre │ Right
+   ────────────┼────────┼──────
+   a           │   b    │     c
+   longer cell │ 中文字 │     1
+
+ Name   │ Note
+ ───────┼──────────────────────────────────
+ Target │ a styled cell with `code` and a
+        │ long tail of words to force
+        │ wrapping in narrow panes
+ ───────┼──────────────────────────────────
+ x      │ y
+
+                            الوصف │ الاسم
+                         ─────────┼──────
+                         جسم مضيء │   نجم
+                             تابع │   قمر
+
+   a  alpha
+   b  bravo
+   c  charlie
+   d  delta
+   e  echo
+   f  foxtrot
+   g  golf
+   h  hotel

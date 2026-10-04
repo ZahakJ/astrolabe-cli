@@ -1,0 +1,35 @@
+   ▎ A quote with emphasis.
+   ▎
+   ▎ ▎ Nested quote.
+
+   ▎ ! Mind the gap
+   ▎ Body text in the callout.
+   ▎
+   ▎ • a list in the callout
+   ▎   ◦ nested
+
+   ▎ ? Collapsed question ▸
+
+   ▎ ¶ Unknownkind
+   ▎ Unknown kinds use the note hue.
+
+                  ·  ✦  ·
+
+                  E = mc^2
+
+   <details>
+   <summary>Raw HTML</summary>
+   </details>
+
+   ▣ Alt text  plate.png
+
+   ▣ diagram.svg
+
+   ▣ Target
+   ▎ target body
+   ▎
+   ▎ Section
+   ▎
+   ▎ more
+
+   ▣ Ghost

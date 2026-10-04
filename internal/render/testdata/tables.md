@@ -1,0 +1,18 @@
+| Left | Centre | Right |
+|:-----|:------:|------:|
+| a | b | c |
+| longer cell | 中文字 | 1 |
+
+| Name | Note |
+|------|------|
+| [[Target]] | a *styled* cell with `code` and a long tail of words to force wrapping in narrow panes |
+| x | y |
+
+| الاسم | الوصف |
+|-------|-------|
+| نجم | جسم مضيء |
+| قمر | تابع |
+
+| a | b | c | d | e | f | g | h |
+|---|---|---|---|---|---|---|---|
+| alpha | bravo | charlie | delta | echo | foxtrot | golf | hotel |

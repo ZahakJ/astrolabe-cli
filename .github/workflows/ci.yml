@@ -1,0 +1,117 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: gofmt
+        if: runner.os == 'Linux'
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      - run: go test ./...
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # tags, for git describe
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: sh scripts/build.sh
+      - name: binary sizes (target ≤ 6 MiB, DESIGN.md §2)
+        run: |
+          ls -l dist/
+          for f in dist/folio-*; do
+            size=$(wc -c <"$f")
+            if [ "$size" -gt 6291456 ]; then
+              echo "::error::$f is $size bytes, over the 6 MiB budget"
+              exit 1
+            fi
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # The Linux binary and install.sh, as a non-root user, on old and new
+  # distributions. `docker run` rather than `container:` because centos:7
+  # cannot run the Node-based actions.
+  containers:
+    name: smoke (${{ matrix.image }})
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - centos:7
+          - quay.io/rockylinux/rockylinux:9
+          - debian:stable-slim
+          - alpine:latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      # The real one-liner shape (`curl … | sh`, or wget where there is no
+      # curl) against a local mirror of the release assets, then the rest of
+      # the smoke test. The artifact download drops the executable bit;
+      # install.sh restores it.
+      - name: smoke test as uid 1000
+        run: |
+          mkdir -p "$RUNNER_TEMP/mirror"
+          cp dist/folio-* dist/checksums.txt install.sh "$RUNNER_TEMP/mirror/"
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory "$RUNNER_TEMP/mirror" >/dev/null 2>&1 &
+          server=$!
+          trap 'kill "$server"' EXIT
+          sleep 1
+          docker run --rm --network host --user 1000:1000 -e HOME=/tmp/home \
+            -e FOLIO_SMOKE_URL=http://127.0.0.1:8765 \
+            -v "$PWD:/src:ro" "${{ matrix.image }}" sh /src/scripts/ci-smoke.sh
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, containers]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: sh scripts/build.sh "$GITHUB_REF_NAME"
+      - name: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/folio-* dist/checksums.txt --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/folio-* dist/checksums.txt \
+              --title "folio $GITHUB_REF_NAME" --generate-notes --verify-tag
+          fi
