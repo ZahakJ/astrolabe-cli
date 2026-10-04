@@ -1,6 +1,8 @@
 # Astrolabe CLI keymap
 
-This page lists every key in Astrolabe CLI, for printing or keeping in a second window. The reader keys come from the keymap table in `internal/tui/keymap.go`. The in-app help (`?`) and the leader palette (press `Space` and wait) read the same table.
+This page lists every key in Astrolabe CLI, in the reader, overlays, panels and editor, for printing or keeping in a second window. Back to the [README](../README.md).
+
+The reader keys come from the keymap table in `internal/tui/keymap.go`. The in-app help (`?`) and the leader palette (press `Space` and wait) read the same table.
 
 A count typed before a key repeats it or gives it a target: `5j` moves five lines down, and `12G` goes to source line 12. `Esc` always closes the topmost overlay.
 
@@ -95,6 +97,8 @@ Task states toggle like this:
 | `Space y` | yank | copy this note's wikilink |
 | `Space q` | quit | quit |
 
+If you press `Space` and wait 300 ms, a palette lists every `Space` binding.
+
 ### Other
 
 | Keys | Action |
@@ -118,7 +122,7 @@ Type these after `:`. `Tab` and `Shift-Tab` complete command names, note names a
 | `:new [TITLE]`, `:enew` | create a note and open it in the editor (asks for a title if none is given) |
 | `:today`, `:daily` | today's daily note |
 | `:theme [NAME]`, `:colo NAME` | switch theme and save it; with no name, show the current one |
-| `:export [FILE]` | write the note as HTML; the default is `<name>.html` in the current directory |
+| `:export [FILE]` | write the note as HTML; the default is `<name>.html` in the current directory, never inside the vault |
 | `:set wrap=N` (`measure`, `tw`, `textwidth`) | page width in columns, 20 or more |
 | `:set nu`, `:set nonu`, `:set nu!` | line numbers in the editor |
 | `:set` | show the width and theme |
@@ -219,7 +223,7 @@ At 124 columns or wider, the context panel (outline above backlinks) opens by de
 
 ## Editor
 
-The editor implements a deliberate subset of Vim, and everything in it behaves as it does in Vim. Lines that soft-wrap move by display line with `j`/`k`. A count, or an operator, makes them move by source line.
+The editor implements a deliberate subset of Vim, and everything in it behaves as it does in Vim. The status bar shows `NORMAL`, `INSERT`, `VISUAL` or `V-LINE`. Lines that soft-wrap move by display line with `j`/`k`. A count, or an operator, makes them move by source line.
 
 ### Modes and leaving
 

@@ -1,10 +1,63 @@
-# Astrolabe CLI and Obsidian vaults
+# Notes, storage and Obsidian vaults
 
-Astrolabe CLI opens an Obsidian vault as it is. It needs no import and no configuration, and it never writes to `.obsidian/`. This page lists what Astrolabe CLI understands, how it resolves links, and what it ignores.
+This page covers how notes are stored, how the vault is chosen, what Astrolabe CLI guarantees about your files, and exactly what it understands in an Obsidian vault. Back to the [README](../README.md).
+
+Astrolabe CLI opens an Obsidian vault as it is. It needs no import and no configuration, and it never writes to `.obsidian/`. It opens a vault shared with [Astrolabe](https://github.com/ZahakJ/astrolabe), or any plain folder of `.md` files, the same way.
+
+## Where state lives
+
+The files are the only state. A note is a `.md` file, and its identity is its path relative to the vault. Its title is the frontmatter `title`, else its first H1, else the file name. Astrolabe CLI writes outside the vault in only these places:
+
+- `~/.config/astrolabe-cli/config`, which you write yourself; Astrolabe CLI changes it only when you change the theme from inside the TUI.
+- `~/.local/state/astrolabe-cli/recent`, which holds recent notes and the last position in each. Losing it loses nothing.
+- `~/.local/state/astrolabe-cli/recovered/`, only if Astrolabe CLI is killed with unsaved edits it could not write to the note (see [Data safety](#data-safety)).
+
+These follow `$XDG_CONFIG_HOME` and `$XDG_STATE_HOME`.
+
+## Vault root
+
+Astrolabe CLI picks the first of these that applies:
+
+1. `-C DIR`
+2. `$ASTROLABE_DIR`
+3. config `dir`
+4. the nearest parent directory with `.obsidian/` or `.astrolabe/`
+5. `~/notes`, if it exists
+6. the current directory, if it holds `.md` files
+7. otherwise `~/notes`, created on the first write
+
+On the first interactive run in a fresh `~/notes`, Astrolabe CLI writes a short `Welcome.md` that teaches the tool. Run `astrolabe doctor` to see which rule chose your vault.
+
+## Data safety
+
+- **Writes are atomic.** Astrolabe CLI writes a temporary file in the same directory, syncs it and renames it over the original. The file mode is kept.
+- **Edits are minimal.**
+  - Ticking a task rewrites one character.
+  - A capture appends one line.
+  - Saving from the editor preserves line endings (LF or CRLF), the presence or absence of a final newline, a BOM, the frontmatter and any syntax Astrolabe CLI does not understand.
+- **Conflicts are refused.** If the file changed on disk after Astrolabe CLI read it, saving does not overwrite it. A prompt offers `r` to reload theirs, `o` to overwrite with yours, or `c` to cancel.
+- **Unsaved edits survive a closed window.** If Astrolabe CLI is ended by `SIGHUP` (the terminal window was closed, an SSH connection dropped) or `SIGTERM` while the editor has unsaved changes, it saves them to the note when the file has not changed on disk since it was read. Otherwise it writes them to `~/.local/state/astrolabe-cli/recovered/<timestamp>-<name>.md`, and the next start says where. `astrolabe doctor` lists recovered buffers until you delete them. Only an explicit discard (`:q!`, `ZQ`, "reload theirs", or answering yes to "Quit anyway?") throws edits away.
+- **New notes never replace existing ones.** `astrolabe new` and `Space n` add ` 2`, ` 3` and so on to the name instead.
+- **No network access.** Astrolabe CLI never touches the network at runtime.
+
+## Obsidian compatibility at a glance
+
+Astrolabe CLI reads an Obsidian vault as it is:
+
+- wikilinks in all forms: `[[Note]]`, `[[Note|label]]`, `[[Note#Heading]]`, `[[Note#^block]]`, `[[folder/Note]]`, all resolved the way Obsidian resolves them
+- aliases, and frontmatter `title`, `tags`, `aliases`, `date` and `created`
+- `#tags` and `#nested/tags`
+- tasks with `[ ]`, `[x]`, `[/]` and `[-]`, due dates written `📅 2026-10-05`, `due:2026-10-05` or `@due(2026-10-05)`, and priorities written `!`, `!!` or with the emoji `⏫` `🔼` `🔽`
+- callouts, including the `+` and `-` fold markers
+- embeds: `![[Note]]` and `![[Note#Heading]]` show the first 12 lines; `![[image.png]]` shows a placeholder
+- `==highlights==`, footnotes, `%% comments %%` and math (shown as source)
+- the daily-notes settings in `.obsidian/daily-notes.json`
+
+Astrolabe CLI does not run plugins, so it has no Dataview, Templater or Canvas. It shows no graph and no images. The rest of this page has the full list.
 
 ## Finding the vault
 
-If you run Astrolabe CLI anywhere inside a folder that has `.obsidian/` above it, that folder is the vault. `.astrolabe/` works the same way for vaults that have never seen Obsidian. Settings that come earlier in the order take precedence: `-C DIR`, `$ASTROLABE_DIR` and the config key `dir`. The full order is in the README under [How notes are stored](../README.md#how-notes-are-stored), and `astrolabe doctor` shows which rule applied.
+If you run Astrolabe CLI anywhere inside a folder that has `.obsidian/` above it, that folder is the vault. `.astrolabe/` works the same way for vaults that have never seen Obsidian. Settings that come earlier in the order take precedence: `-C DIR`, `$ASTROLABE_DIR` and the config key `dir`. The full order is under [Vault root](#vault-root) above, and `astrolabe doctor` shows which rule applied.
 
 The scan skips:
 

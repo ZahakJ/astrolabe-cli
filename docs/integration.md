@@ -1,5 +1,7 @@
 # Using Astrolabe CLI with the shell, tmux and Neovim
 
+This page covers shell aliases, pipes and hooks, tmux popups, Neovim in both directions, and wiring Astrolabe CLI into rihla. Back to the [README](../README.md); the complete list of verbs is in the [shell reference](cli.md).
+
 Astrolabe CLI is meant to sit next to the tools you already use. Everything on this page was run against Astrolabe CLI's sample vault with tmux 3.7, Neovim 0.12, bash and zsh. Where a snippet depends on a newer version of a tool, the text says so.
 
 Three facts explain most of what follows:
@@ -129,6 +131,7 @@ Notes on these bindings:
 - **Popups use tmux's global environment**, not your interactive shell's. If `astrolabe` is in `~/.local/bin` and the popup cannot find it, add `set-environment -g PATH "$HOME/.local/bin:$PATH"` (and `set-environment -g ASTROLABE_DIR "$HOME/notes"` if you use it), or write the full path to the binary.
 - **Default bindings.** `N`, `a`, `A` and `F` have no default binding in tmux 3.7. `C` (customize mode) and `T` are worth avoiding if you use them.
 - **The `-E` flag** closes the popup when Astrolabe CLI exits.
+- **The `-d` flag** runs Astrolabe CLI in the pane's directory so that project vaults are found; with `ASTROLABE_DIR` or `dir` set it makes no difference.
 
 ### Clipboard
 
@@ -256,7 +259,9 @@ end, { nargs = "+" })
 theme = mocha
 ```
 
-`mocha` uses the Catppuccin Mocha colours: ground `#1e1e2e`, text `#cdd6f4`, accent mauve `#cba6f7`. If you run Neovim and tmux with a transparent background and want Astrolabe CLI to match, add `ground = off`. Astrolabe CLI then leaves the terminal's background alone and draws only the text colours.
+`mocha` uses the Catppuccin Mocha colours: ground `#1e1e2e`, text `#cdd6f4`, accent mauve `#cba6f7`. If you run Neovim and tmux with a transparent background and want Astrolabe CLI to match, add `ground = off`. Astrolabe CLI then leaves the terminal's background alone and draws only the text colours. With `mocha`, Astrolabe CLI matches a Catppuccin Neovim and tmux.
+
+![Astrolabe CLI in the mocha theme](shots/mocha.svg)
 
 ## rihla
 
@@ -277,15 +282,17 @@ theme = mocha
 
 3. **Neovim.** Copy `astrolabe.lua` (above) into rihla's Lua directory and require it from its `init.lua`. Before choosing `<leader>n…`, check rihla's existing leader mappings.
 
-4. **Astrolabe CLI config.** Write a matching config only when the user has none, so a later personal change survives a re-run of the bootstrap:
+4. **Astrolabe CLI config.** rihla uses Catppuccin Mocha. Write a matching config only when the user has none, so a later personal change survives a re-run of the bootstrap:
 
    ```sh
-   cfg="${XDG_CONFIG_HOME:-$HOME/.config}/astrolabe/config"
+   cfg="${XDG_CONFIG_HOME:-$HOME/.config}/astrolabe-cli/config"
    if [ ! -f "$cfg" ]; then
      mkdir -p "$(dirname "$cfg")"
      printf '%s\n' 'theme = mocha' 'editor = external' > "$cfg"
    fi
    ```
+
+   With `editor = external` and `EDITOR=nvim`, `i` and `E` in the reader both open Neovim.
 
    Astrolabe CLI rewrites the `theme =` line when the user changes the theme with `Space T` or `:theme`, keeping any other lines and comments. Do not manage this file with a symlink into rihla's repository unless that change should land in the repository.
 
