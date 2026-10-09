@@ -27,7 +27,7 @@ With wget: `wget -qO- https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/mai
 The repository includes a sample vault in `examples/vault`, so you can try this without touching your own notes. The [full tour](docs/tour.md) has every step in more detail, with captures.
 
 1. Run `astrolabe doctor`. It reports the colour depth, glyphs, bidi mode, which vault it chose and why, and ends with a test card.
-2. Go to your notes. A folder with `.obsidian/` or `.astrolabe/` above the current directory is the vault; otherwise it is usually `~/notes` (the [full order](docs/obsidian.md#vault-root)). Set `ASTROLABE_DIR` to fix one vault everywhere.
+2. Go to your notes: run `astrolabe -C ~/my-notes` once and that folder is remembered, so plain `astrolabe` opens it from anywhere (a folder with `.obsidian/` or `.astrolabe/` above where you stand still wins; the [full order](docs/obsidian.md#vault-root)). `astrolabe vault` shows which vault and why, and `astrolabe vault DIR` changes it.
 3. Capture from the shell: `astrolabe add "call the plumber"` appends one line to today's daily note, and `astrolabe add -t "renew passport due:2026-11-02"` adds a task.
 4. Run `astrolabe` to open the reader (today's note, else the last note), or `astrolabe "Lantern migration"` to open a note by title, path, alias or fuzzy match.
 5. Move with `j` `k`, `Ctrl-d` `Ctrl-u`, `gg` `G`; jump between headings with `]]` `[[`; fold with `za`.

@@ -299,6 +299,9 @@ func (a *app) cmdPath(args []string) error {
 		if err != nil {
 			return err
 		}
+		if r.Exists {
+			_, _ = a.vault() // so that `astrolabe -C DIR path` is remembered too
+		}
 		a.raw("%s\n", r.Dir)
 		return nil
 	}

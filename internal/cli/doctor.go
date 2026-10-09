@@ -24,6 +24,8 @@ func (a *app) cmdDoctor(args []string) error {
 	if len(pos) > 0 {
 		return usagef("doctor", "unexpected argument %q", pos[0])
 	}
+	// Doctor looks; it does not remember the vault or warn on stderr.
+	a.noRemember, a.quietStale = true, true
 	p := a.painter()
 	d := a.display()
 	c := d.Caps
@@ -174,6 +176,21 @@ func (a *app) cmdDoctor(args []string) error {
 				row(".astrolabeignore", "present")
 			}
 		}
+		home := a.env.Home
+		switch {
+		case r.Stale != "":
+			row("remembered", p.danger(a.staleShown(r))+"  "+p.faint("skipped"))
+			warnings = append(warnings, "the remembered vault "+a.staleShown(r)+"; `astrolabe vault DIR` remembers another, `astrolabe vault --forget` clears it")
+		case r.Remembered == "":
+			row("remembered", p.faint("nothing yet (`astrolabe -C DIR` once, or `astrolabe vault DIR`)"))
+		case vault.SamePath(r.Remembered, r.Dir):
+			row("remembered", vault.DisplayPath(r.Remembered, home))
+		default:
+			row("remembered", vault.DisplayPath(r.Remembered, home)+"  "+p.faint(notUsedWhy(r.Source)))
+		}
+		if err := vault.ConfigWritable(vault.ConfigFile(a.getenv)); err != nil {
+			warnings = append(warnings, "astrolabe cannot write its config, so it cannot remember the vault: "+err.Error())
+		}
 	}
 
 	// Config.
@@ -258,17 +275,30 @@ func rootWhy(s vault.RootSource) string {
 	case vault.RootFromEnv:
 		return "from $ASTROLABE_DIR"
 	case vault.RootFromConfig:
-		return "from config dir"
+		return "the remembered vault (config dir)"
 	case vault.RootFromMarker:
-		return "folder with .obsidian/ or .astrolabe/"
+		return "you are inside it (.obsidian/ or .astrolabe/ above the working directory)"
 	case vault.RootFromHome:
-		return "~/notes"
+		return "~/notes exists"
 	case vault.RootFromCwd:
 		return "the current folder holds notes"
 	case vault.RootFromDefault:
 		return "default ~/notes"
 	}
 	return s.String()
+}
+
+// notUsedWhy says why the remembered vault is not the one in use.
+func notUsedWhy(s vault.RootSource) string {
+	switch s {
+	case vault.RootFromFlag:
+		return "not used: -C wins"
+	case vault.RootFromEnv:
+		return "not used: $ASTROLABE_DIR wins"
+	case vault.RootFromMarker:
+		return "not used here: the vault you stand in wins"
+	}
+	return "not used"
 }
 
 // testCard prints colour swatches, attributes, glyphs and scripts so the

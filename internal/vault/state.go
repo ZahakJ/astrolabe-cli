@@ -162,3 +162,28 @@ func (r *Recent) Save() error {
 	_, err := WriteFile(r.file, []byte(b.String()), nil)
 	return err
 }
+
+// UsedFile is the state file recording that astrolabe has opened a vault
+// in ~/notes before, so the first-run Welcome note never opens by itself
+// again (DESIGN.md §3).
+func UsedFile(getenv func(string) string) string {
+	return filepath.Join(StateDir(getenv), "used")
+}
+
+// MarkUsed creates the used file if it is missing.
+func MarkUsed(getenv func(string) string) error {
+	f := UsedFile(getenv)
+	if _, err := os.Stat(f); err == nil {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(f), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(f, nil, 0o644)
+}
+
+// Used reports whether the used file exists.
+func Used(getenv func(string) string) bool {
+	_, err := os.Stat(UsedFile(getenv))
+	return err == nil
+}

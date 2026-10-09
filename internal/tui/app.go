@@ -48,6 +48,7 @@ type config struct {
 	// written to their note when astrolabe is terminated ("" = nowhere).
 	RecoveredDir string
 	Cwd          string // where :export writes by default
+	Home         string // home directory, to show the vault as "~/notes"
 	Now          func() time.Time
 	// EditorCommand builds the $EDITOR command (nil = term.EditorCommand).
 	EditorCommand func(file string, line int) *exec.Cmd

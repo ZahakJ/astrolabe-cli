@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.1
+
+### It remembers where your notes are
+
+- `astrolabe -C ~/my-notes` once is enough: the vault is written to the config key `dir` and stderr says once ``Using ~/my-notes from now on; `astrolabe vault` to change.`` A plain `astrolabe` then opens it from any directory, instead of falling through to an empty `~/notes` and the tutorial. A later `-C` with another folder replaces it; a folder found by its `.obsidian/`/`.astrolabe/` marker is remembered only while nothing is. `$ASTROLABE_DIR` still wins for its environment and is never remembered.
+- New resolution order: `-C`, `$ASTROLABE_DIR`, the vault you stand in (marker above the working directory), the remembered vault, `~/notes`, the working directory if it holds notes, a new `~/notes`. The remembered vault now beats `~/notes` and the working-directory guess (before, config `dir` came before markers). A remembered folder that no longer exists is skipped with a one-line warning.
+- The Welcome note opens by itself only on the very first run: nothing remembered, and `~/notes` new and empty. A state file `used` keeps it from coming back. `astrolabe learn` opens it on purpose (`-p` prints it).
+- `astrolabe vault [DIR | --forget]`: the vault a plain run uses, the rule that chose it and the remembered vault (only the path in a pipe); `DIR` remembers another folder; `--forget` clears it.
+- `astrolabe doctor` shows the remembered vault, says when the vault you stand in won over it, and warns when the config cannot be written or the remembered folder is gone.
+- The status bar names the vault before the breadcrumb, `✦ my-notes › runbooks › Lantern cutover`, and the home screen shows it as a home-relative path (`~/notes`).
+- `vault` and `learn` are now reserved words; a note with one of those names opens with `astrolabe ./vault.md`.
+
 ## v0.2.0
 
 ### Renamed: folio is now Astrolabe CLI

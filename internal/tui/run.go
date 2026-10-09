@@ -131,6 +131,10 @@ func Run(ctx context.Context, req cli.TUIRequest) (cli.TUIResult, error) {
 		// detected on stdout, which may be a pipe).
 		gl := theme.GlyphsFor(!caps.UTF8 || topts.ASCII)
 		cwd, _ := os.Getwd()
+		home := req.Home
+		if home == "" {
+			home, _ = os.UserHomeDir()
+		}
 		configFile := ""
 		if req.Config != nil {
 			configFile = req.Config.File
@@ -154,6 +158,7 @@ func Run(ctx context.Context, req cli.TUIRequest) (cli.TUIResult, error) {
 			RecentFile:   req.RecentFile,
 			RecoveredDir: recoveredDir(req.RecentFile),
 			Cwd:          cwd,
+			Home:         home,
 			Debug:        os.Getenv("ASTROLABE_DEBUG") == "1",
 		})
 		a.sigReq = sigReq

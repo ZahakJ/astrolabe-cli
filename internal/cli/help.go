@@ -237,12 +237,56 @@ Examples
   astrolabe path Inbox
   astrolabe -C ~/work-notes path`,
 	},
+	"vault": {
+		usage:   "vault [DIR | --forget]",
+		summary: "Show, change or forget the remembered vault.",
+		body: `astrolabe remembers your notes folder: the first time a run uses -C DIR (or
+a folder with .obsidian/ or .astrolabe/ above where you stand, while nothing
+is remembered yet) it is written to config "dir", and plain astrolabe opens
+it from anywhere afterwards. Another -C DIR replaces it. $ASTROLABE_DIR wins
+for one environment and is never remembered.
+
+Which vault a run uses, first match wins
+  -C DIR, then $ASTROLABE_DIR, then the vault you are standing in (a folder
+  with .obsidian/ or .astrolabe/ above the working directory), then the
+  remembered vault, then ~/notes if it exists, then the working directory if
+  it holds .md files, else a new ~/notes.
+
+Options
+  --forget            clear the remembered vault
+
+Examples
+  astrolabe vault                 # which vault, and why
+  astrolabe vault ~/notes         # remember ~/notes from now on
+  astrolabe vault --forget
+  cd "$(astrolabe vault)"
+
+Output
+  With no DIR: the vault, the rule that chose it and the remembered vault
+  in a terminal; only the vault's absolute path in a pipe. Exit status 1
+  when DIR does not exist or is not a directory.`,
+	},
+	"learn": {
+		usage:   "learn [-p]",
+		summary: "Open the Welcome note: astrolabe in a minute.",
+		body: `Opens Welcome.md in the current vault, writing it first if there is no file
+of that name. The Welcome note opens by itself only on the very first run,
+in a new ~/notes with no vault remembered.
+
+Options
+  -p, --print         print the tutorial to stdout instead
+
+Examples
+  astrolabe learn
+  astrolabe learn -p | less`,
+	},
 	"doctor": {
 		usage:   "doctor",
 		summary: "Show terminal capabilities, vault, config and a test card.",
 		body: `Use it when something looks wrong: it shows what astrolabe detected (colour
 depth, glyphs, bidi, hyperlinks, clipboard), which vault it chose and why,
-the config file and any unknown keys, and a card of colours and glyphs.
+the remembered vault (and when the vault you stand in won over it), the
+config file and any unknown keys, and a card of colours and glyphs.
 
 Examples
   astrolabe doctor
@@ -295,13 +339,16 @@ Output
   path [NOTE]           the vault root, or a note's absolute path
 
 Other
+  vault [DIR]           show or change the remembered vault  (--forget)
+  learn                 open the Welcome note, a one-minute tutorial
   doctor                terminal, vault and config check with a test card
   help [VERB]           the manual for one verb
   version               print the version
 
 Global flags, before or after the verb
-  -C, --dir DIR         the vault folder (default: $ASTROLABE_DIR, config "dir",
-                        the nearest folder with .obsidian/ or .astrolabe/,
+  -C, --dir DIR         the vault folder, remembered from then on (default:
+                        $ASTROLABE_DIR, the folder with .obsidian/ or
+                        .astrolabe/ you stand in, the remembered vault,
                         ~/notes, or the current folder if it holds notes)
   --theme NAME          onyx (default), iron-gall, parchment, graphite,
                         mocha or sidereal

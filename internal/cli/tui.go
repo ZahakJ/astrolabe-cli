@@ -23,6 +23,7 @@ func (a *app) tuiRequest(mode TUIMode) TUIRequest {
 		Root:       a.root,
 		Config:     a.config(),
 		RecentFile: vault.RecentFile(a.getenv),
+		Home:       a.env.Home,
 		StdoutTTY:  a.env.StdoutTTY,
 		Display:    *a.display(),
 	}
@@ -43,7 +44,9 @@ func tuiMissing() error {
 
 // openDefault is plain `astrolabe`: today's daily note if it exists, else the
 // last note of this vault, else the home screen (DESIGN.md §4.1). The first
-// interactive run in a fresh ~/notes writes Welcome.md (DESIGN.md §3).
+// interactive run writes Welcome.md and opens it only when nothing is
+// remembered, the vault is the new ~/notes default and no vault in ~/notes
+// was ever used (DESIGN.md §3); `astrolabe learn` opens it on purpose.
 func (a *app) openDefault() error {
 	if a.env.Hooks.RunTUI == nil {
 		return tuiMissing()
@@ -58,7 +61,7 @@ func (a *app) openDefault() error {
 	} else if rel, line, ok := a.lastNote(v); ok {
 		req.Path, req.Line = rel, line
 	}
-	if req.Path == "" && (a.root.Source == vault.RootFromHome || a.root.Source == vault.RootFromDefault) {
+	if req.Path == "" && a.firstRun() {
 		if wrote, err := vault.EnsureWelcome(v.Root()); err != nil {
 			a.errorf("could not write %s: %v", vault.WelcomeName, err)
 		} else if wrote {
@@ -70,12 +73,26 @@ func (a *app) openDefault() error {
 	return a.runTUI(req)
 }
 
+// firstRun is the tutorial gate: no vault remembered, the resolved vault
+// is the "~/notes (new)" default, and the state file does not record an
+// earlier vault in ~/notes. (EnsureWelcome adds: the folder is empty.)
+func (a *app) firstRun() bool {
+	if a.root.Source != vault.RootFromDefault || !a.rooted {
+		return false
+	}
+	if d, _ := a.config().FileValue("dir"); strings.TrimSpace(d) != "" {
+		return false
+	}
+	return !vault.Used(a.getenv)
+}
+
 // lastNote returns the most recent note of the recent file that lies in
-// this vault and still exists.
+// this vault and still exists. The untouched Welcome note is not resumed:
+// the tutorial opens by itself once (`astrolabe learn` reopens it).
 func (a *app) lastNote(v *vault.Vault) (string, int, bool) {
 	r := vault.LoadRecent(vault.RecentFile(a.getenv))
 	for _, e := range r.Entries() {
-		if !within(v.Root(), e.Path) || !fileExists(e.Path) {
+		if !within(v.Root(), e.Path) || !fileExists(e.Path) || isPristineWelcome(e.Path) {
 			continue
 		}
 		rel, err := filepath.Rel(v.Root(), e.Path)
@@ -85,6 +102,20 @@ func (a *app) lastNote(v *vault.Vault) (string, int, bool) {
 		return filepath.ToSlash(rel), e.Line, true
 	}
 	return "", 0, false
+}
+
+// isPristineWelcome reports whether p is a Welcome.md still exactly as
+// astrolabe wrote it.
+func isPristineWelcome(p string) bool {
+	if filepath.Base(p) != vault.WelcomeName {
+		return false
+	}
+	fi, err := os.Stat(p)
+	if err != nil || fi.Size() != int64(len(vault.WelcomeNote)) {
+		return false
+	}
+	b, err := os.ReadFile(p)
+	return err == nil && string(b) == vault.WelcomeNote
 }
 
 func fileExists(p string) bool {

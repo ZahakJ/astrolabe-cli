@@ -70,11 +70,31 @@ install.sh               one-line installer
 ## 3. Vault model
 
 - A vault is a directory tree of `.md` files. Resolution order for the root:
-  `-C DIR`/`--dir`, `$ASTROLABE_DIR`, config `dir`, the nearest ancestor of the
-  working directory containing `.obsidian/` or `.astrolabe/`, `~/notes` if it
-  exists, the working directory if it directly contains any `.md`, else
-  `~/notes` (created on first write; the first interactive run in a fresh
-  `~/notes` writes a short `Welcome.md` that teaches the tool).
+  `-C DIR`/`--dir`, `$ASTROLABE_DIR`, the nearest ancestor of the working
+  directory containing `.obsidian/` or `.astrolabe/` (the vault you stand in),
+  the **remembered vault** (config `dir`; skipped with a one-line warning when
+  it no longer exists), `~/notes` if it exists, the working directory if it
+  directly contains any `.md`, else `~/notes` (created on first write).
+  `astrolabe doctor` and `astrolabe vault` say which rule chose, and name the
+  remembered vault when the one you stand in won over it.
+- **Remembering.** A tool for notes must know where the notes are. When a run
+  opens its vault from `-C DIR`, and nothing is remembered or a different
+  vault is, `dir = <absolute path>` is written to the config (created if
+  absent, other lines and comments kept) and stderr says once, on a
+  terminal: ``Using ~/my-notes from now on; `astrolabe vault` to change.``
+  A vault found by its marker is remembered only while nothing is (walking
+  into a project vault must not steal the remembered one). Never
+  remembered: `$ASTROLABE_DIR` (a per-environment choice that still wins for
+  that run), the new `~/notes` default, a vault that failed to open, the
+  vault of a single file opened from outside it, and runs of `doctor` and
+  `vault`. A failed write is soft: doctor warns when the config is not
+  writable. `astrolabe vault [DIR | --forget]` shows, sets or clears it.
+- **First run.** The Welcome note (`Welcome.md`, a one-minute tutorial) is
+  written and opened by plain `astrolabe` only when nothing is remembered,
+  the vault is the new `~/notes` default, it is empty, and the state file
+  `used` (written whenever a vault in `~/notes` is opened) is absent; so it
+  opens by itself at most once. `astrolabe learn` opens it on purpose
+  (writing it only if no `Welcome.md` exists; `-p` prints it).
 - `astrolabe some/file.md` outside any vault: the vault is the nearest ancestor
   with `.obsidian/`/`.astrolabe/`, else the file's own directory.
 - Scan skips dot-directories, `node_modules`, and anything matched by a
@@ -139,6 +159,8 @@ astrolabe links NOTE            outgoing links;  astrolabe backlinks NOTE   inco
 astrolabe render [FILE|-]       render Markdown to stdout: ANSI on a terminal, plain text in a pipe (-w COLS, --color=…)
 astrolabe export NOTE           standalone HTML to stdout (-o FILE)
 astrolabe path [NOTE]           print the vault root, or a note's absolute path
+astrolabe vault [DIR|--forget]  show the vault a plain run uses, the rule and the remembered vault (path alone in a pipe); DIR remembers it; --forget clears it
+astrolabe learn                 open the Welcome note (written if absent); -p print it
 astrolabe doctor                show detected terminal capabilities, vault, config, and a glyph/colour test card
 astrolabe help [VERB]  ·  astrolabe version
 ```
@@ -146,7 +168,7 @@ astrolabe help [VERB]  ·  astrolabe version
 Rules: results on stdout, messages on stderr; machine-readable when stdout is
 not a terminal (no colour, no decoration, stable `path:line:text` forms);
 exit 0 success, 1 "nothing found", 2 usage error, 130 cancelled. Global flags
-before or after the verb: `-C DIR`, `--theme NAME`, `--color
+before or after the verb: `-C DIR` (remembered, §3), `--theme NAME`, `--color
 auto|truecolor|256|16|none`, `--ascii`, `--bidi auto|on|off`. `NO_COLOR` is
 honoured. Unknown first argument that resolves to no note → a clear error
 with the nearest matches, exit 1. Unique verb prefixes are not accepted (a
@@ -171,8 +193,12 @@ note may be called `to`); the verbs above are reserved words and `Astrolabe CLI
   columns. No tab bar. Below 60 columns the status bar keeps only the note
   name and the mode pill. Minimum supported size 40×10; smaller shows a
   single "window too small" line rather than garbage.
-- Status bar: left `✦` + breadcrumb (folders muted and the first to
-  ellipsise, note name last standing), dirty dot `●` in the accent when modified;
+- Status bar: left `✦`, the vault's short name (home-relative such as
+  `~/notes` when that is short, else the folder's own name) and the
+  breadcrumb, e.g. `✦ my-notes › runbooks › Lantern cutover` (vault and
+  folders muted; folders are the first to ellipsise, then the vault name,
+  note name last standing; the home screen shows the vault's home-relative
+  path), dirty dot `●` in the accent when modified;
   right: words · reading time (reader) or `line:col` (editor), then a mode pill
   `READ` / `NORMAL` / `INSERT` / `VISUAL`. Transient messages replace the left
   side for 3 s. One line for `:` commands and `/` search replaces the bar while

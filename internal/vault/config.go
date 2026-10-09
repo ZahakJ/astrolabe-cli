@@ -174,6 +174,10 @@ func SetConfigValue(file, key, value string) error {
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err
 	}
+	if strings.Contains(value, " #") || strings.TrimSpace(value) != value ||
+		strings.HasPrefix(value, `"`) || strings.HasPrefix(value, "'") {
+		value = `"` + value + `"` // read back verbatim by parseConfigLine
+	}
 	newLine := key + " = " + value
 	lines := strings.SplitAfter(string(data), "\n")
 	if len(lines) > 0 && lines[len(lines)-1] == "" {
@@ -208,4 +212,72 @@ func SetConfigValue(file, key, value string) error {
 	}
 	_, err = WriteFile(file, []byte(out), nil)
 	return err
+}
+
+// FileValue returns the value of key as written in the config file,
+// ignoring the ASTROLABE_<KEY> environment override (the remembered vault
+// is config "dir", while $ASTROLABE_DIR is a separate, higher rule).
+func (c *Config) FileValue(key string) (string, bool) {
+	v, ok := c.values[strings.ToLower(key)]
+	return v, ok
+}
+
+// UnsetConfigValue removes every "key = …" line from the config file,
+// keeping comments and all other lines in their order. A missing file or
+// key is not an error; removed reports whether a line was dropped.
+func UnsetConfigValue(file, key string) (removed bool, err error) {
+	key = strings.ToLower(strings.TrimSpace(key))
+	data, err := os.ReadFile(file)
+	if errors.Is(err, fs.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, err
+	}
+	var kept []string
+	for _, l := range strings.SplitAfter(string(data), "\n") {
+		if k, _, ok, _ := parseConfigLine(l); ok && k == key {
+			removed = true
+			continue
+		}
+		kept = append(kept, l)
+	}
+	if !removed {
+		return false, nil
+	}
+	_, err = WriteFile(file, []byte(strings.Join(kept, "")), nil)
+	return err == nil, err
+}
+
+// ConfigWritable reports why the config file could not be written, or nil
+// when it can be (for `astrolabe doctor`: remembering the vault fails soft).
+// Nothing is changed: an existing file is opened for appending and closed,
+// otherwise a probe file is created and removed in the nearest existing
+// ancestor directory.
+func ConfigWritable(file string) error {
+	if f, err := os.OpenFile(file, os.O_WRONLY|os.O_APPEND, 0); err == nil {
+		return f.Close()
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return err
+	}
+	dir := filepath.Dir(file)
+	for {
+		if fi, err := os.Stat(dir); err == nil {
+			if !fi.IsDir() {
+				return fmt.Errorf("%s is not a directory", dir)
+			}
+			break
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+	f, err := os.CreateTemp(dir, ".astrolabe-probe-*")
+	if err != nil {
+		return err
+	}
+	f.Close()
+	return os.Remove(f.Name())
 }

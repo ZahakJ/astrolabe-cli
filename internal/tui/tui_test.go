@@ -1016,7 +1016,7 @@ func TestASCIIAndSixteenColours(t *testing.T) {
 			}
 		}
 	}
-	h.contains("* Home")
+	h.contains("* " + filepath.Base(h.dir) + " > Home")
 	h.keys("ctrl+p")
 	h.contains("Find note", "+--")
 }

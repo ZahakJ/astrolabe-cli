@@ -8,7 +8,7 @@ Three facts explain most of what follows:
 
 - **Paths.** In a pipe Astrolabe CLI prints `path:line:text` or tab-separated columns. Paths are relative to the current directory when you are inside the vault, and absolute otherwise. `new`, `today -p`, `path` and `pick` always print absolute paths.
 - **The terminal.** Interactive parts (`astrolabe`, `astrolabe pick`, `astrolabe new -o`) draw on `/dev/tty`. That is why `"$(astrolabe pick)"` works: the picker draws on the terminal while the chosen path goes to stdout.
-- **Which vault.** Without `-C`, `ASTROLABE_DIR` or the config key `dir`, Astrolabe CLI picks the vault from the current directory. A command started by tmux, Neovim or a git hook may run in a directory you did not expect, so set `ASTROLABE_DIR` (or `dir`) once.
+- **Which vault.** Astrolabe CLI remembers your vault: the first `astrolabe -C DIR` (or `astrolabe vault DIR`) writes it to the config key `dir`, and every later run uses it from any directory, including commands started by tmux, Neovim, cron or a git hook, because they read the same config file. Two things still come before it: `ASTROLABE_DIR`, and a folder with `.obsidian/` or `.astrolabe/` above the current directory. `astrolabe vault` shows which rule applied ([full order](cli.md#which-vault)).
 
 ## Shell
 
@@ -95,7 +95,7 @@ astrolabe add "$(basename "$(git rev-parse --show-toplevel)"): $(git log -1 --fo
 
 To use it in every repository, put it in a template directory (`git config --global init.templateDir ~/.git-template`, with the file at `~/.git-template/hooks/post-commit`) or in a global hooks directory (`git config --global core.hooksPath ~/.githooks`). The second replaces each repository's own hooks.
 
-The hook runs inside the repository. Without `ASTROLABE_DIR` or `dir`, a repository that contains `.md` files would itself be taken as the vault.
+The hook runs inside the repository. With a remembered vault the line goes there, even when the repository contains `.md` files. With nothing remembered, such a repository would itself be taken as the vault, and a repository with `.obsidian/` or `.astrolabe/` is always its own vault; set `ASTROLABE_DIR` in the hook if you need to override either.
 
 ### Cron or a systemd timer
 
@@ -128,10 +128,10 @@ Notes on these bindings:
 
 - **Use single quotes.** Inside double quotes tmux expands `$line` itself while it reads the config, so the capture would always be empty.
 - **`--` ends Astrolabe CLI's options**, so a capture that starts with `-` is still text.
-- **Popups use tmux's global environment**, not your interactive shell's. If `astrolabe` is in `~/.local/bin` and the popup cannot find it, add `set-environment -g PATH "$HOME/.local/bin:$PATH"` (and `set-environment -g ASTROLABE_DIR "$HOME/notes"` if you use it), or write the full path to the binary.
+- **Popups use tmux's global environment**, not your interactive shell's. If `astrolabe` is in `~/.local/bin` and the popup cannot find it, add `set-environment -g PATH "$HOME/.local/bin:$PATH"`, or write the full path to the binary. A remembered vault needs nothing here (it is in the config file); if you use `ASTROLABE_DIR` instead, add `set-environment -g ASTROLABE_DIR "$HOME/notes"` too.
 - **Default bindings.** `N`, `a`, `A` and `F` have no default binding in tmux 3.7. `C` (customize mode) and `T` are worth avoiding if you use them.
 - **The `-E` flag** closes the popup when Astrolabe CLI exits.
-- **The `-d` flag** runs Astrolabe CLI in the pane's directory so that project vaults are found; with `ASTROLABE_DIR` or `dir` set it makes no difference.
+- **The `-d` flag** runs Astrolabe CLI in the pane's directory so that a project vault (`.obsidian/` or `.astrolabe/` above the pane) is found before the remembered one; elsewhere the remembered vault opens. With `ASTROLABE_DIR` set it makes no difference.
 
 ### Clipboard
 
@@ -282,20 +282,20 @@ theme = mocha
 
 3. **Neovim.** Copy `astrolabe.lua` (above) into rihla's Lua directory and require it from its `init.lua`. Before choosing `<leader>n…`, check rihla's existing leader mappings.
 
-4. **Astrolabe CLI config.** rihla uses Catppuccin Mocha. Write a matching config only when the user has none, so a later personal change survives a re-run of the bootstrap:
+4. **Astrolabe CLI config.** rihla uses Catppuccin Mocha. Add a matching theme only when the user has not chosen one, so a later personal change survives a re-run of the bootstrap. Check for the `theme` line rather than the file: Astrolabe CLI creates the file itself when it remembers the vault.
 
    ```sh
    cfg="${XDG_CONFIG_HOME:-$HOME/.config}/astrolabe-cli/config"
-   if [ ! -f "$cfg" ]; then
+   if ! grep -qs '^[[:space:]]*theme[[:space:]]*=' "$cfg"; then
      mkdir -p "$(dirname "$cfg")"
-     printf '%s\n' 'theme = mocha' 'editor = external' > "$cfg"
+     printf '%s\n' 'theme = mocha' 'editor = external' >> "$cfg"
    fi
    ```
 
    With `editor = external` and `EDITOR=nvim`, `i` and `E` in the reader both open Neovim.
 
-   Astrolabe CLI rewrites the `theme =` line when the user changes the theme with `Space T` or `:theme`, keeping any other lines and comments. Do not manage this file with a symlink into rihla's repository unless that change should land in the repository.
+   Astrolabe CLI rewrites the `theme =` line when the user changes the theme with `Space T` or `:theme`, and the `dir =` line when it remembers a vault, keeping any other lines and comments. Do not manage this file with a symlink into rihla's repository unless that change should land in the repository.
 
-5. **The vault.** If the notes are not in `~/notes`, export `ASTROLABE_DIR` from rihla's shell profile. The tmux popups and Neovim mappings then work from any directory.
+5. **The vault.** If the notes are not in `~/notes`, the user runs `astrolabe -C DIR` (or `astrolabe vault DIR`) once; the vault is remembered in the config file, so the tmux popups, Neovim mappings and hooks find it from any directory without any environment. Do not export `ASTROLABE_DIR` from rihla by default: it would override what the user chose. It remains the right tool for a fixed vault per machine or per environment, and then it must also reach tmux's global environment (`set-environment -g`).
 
 6. **Check.** Run `astrolabe doctor` inside tmux. It should show truecolour (or 256), Unicode glyphs, the vault you expect, and a config file with no warnings.

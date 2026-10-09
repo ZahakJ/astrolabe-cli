@@ -8,8 +8,9 @@ Astrolabe CLI opens an Obsidian vault as it is. It needs no import and no config
 
 The files are the only state. A note is a `.md` file, and its identity is its path relative to the vault. Its title is the frontmatter `title`, else its first H1, else the file name. Astrolabe CLI writes outside the vault in only these places:
 
-- `~/.config/astrolabe-cli/config`, which you write yourself; Astrolabe CLI changes it only when you change the theme from inside the TUI.
+- `~/.config/astrolabe-cli/config`, which you write yourself; Astrolabe CLI changes only two lines in it: `theme`, when you change the theme from inside the TUI, and `dir`, when it remembers your vault (see [Vault root](#vault-root)).
 - `~/.local/state/astrolabe-cli/recent`, which holds recent notes and the last position in each. Losing it loses nothing.
+- `~/.local/state/astrolabe-cli/used`, an empty file saying a vault in `~/notes` was opened before, so the Welcome note does not open by itself again.
 - `~/.local/state/astrolabe-cli/recovered/`, only if Astrolabe CLI is killed with unsaved edits it could not write to the note (see [Data safety](#data-safety)).
 
 These follow `$XDG_CONFIG_HOME` and `$XDG_STATE_HOME`.
@@ -20,13 +21,17 @@ Astrolabe CLI picks the first of these that applies:
 
 1. `-C DIR`
 2. `$ASTROLABE_DIR`
-3. config `dir`
-4. the nearest parent directory with `.obsidian/` or `.astrolabe/`
+3. the nearest parent directory with `.obsidian/` or `.astrolabe/`: the vault you are standing in
+4. the remembered vault (config `dir`)
 5. `~/notes`, if it exists
 6. the current directory, if it holds `.md` files
 7. otherwise `~/notes`, created on the first write
 
-On the first interactive run in a fresh `~/notes`, Astrolabe CLI writes a short `Welcome.md` that teaches the tool. Run `astrolabe doctor` to see which rule chose your vault.
+Astrolabe CLI remembers your vault. The first time you run `astrolabe -C ~/my-notes` it writes `dir = /home/you/my-notes` to the config file and says ``Using ~/my-notes from now on; `astrolabe vault` to change.`` From then on a plain `astrolabe` opens that folder from any directory. A later `-C` with a different folder replaces it. A folder found by its `.obsidian/` or `.astrolabe/` marker is remembered only when nothing is remembered yet, so working inside a project vault never replaces your notes. `$ASTROLABE_DIR` is never remembered: it wins for that environment only. If the remembered folder is moved or deleted, Astrolabe CLI says so in one line and carries on down the list.
+
+`astrolabe vault` prints the vault a plain run would use, the rule that chose it and the remembered vault; `astrolabe vault DIR` remembers another folder and `astrolabe vault --forget` clears it. `astrolabe doctor` shows the same, and says when the vault you stand in won over the remembered one.
+
+The Welcome note, a one-minute tutorial, opens by itself only on the very first run: nothing remembered, no vault yet, and `~/notes` new and empty. `astrolabe learn` opens it whenever you want it.
 
 ## Data safety
 
@@ -57,7 +62,7 @@ Astrolabe CLI does not run plugins, so it has no Dataview, Templater or Canvas. 
 
 ## Finding the vault
 
-If you run Astrolabe CLI anywhere inside a folder that has `.obsidian/` above it, that folder is the vault. `.astrolabe/` works the same way for vaults that have never seen Obsidian. Settings that come earlier in the order take precedence: `-C DIR`, `$ASTROLABE_DIR` and the config key `dir`. The full order is under [Vault root](#vault-root) above, and `astrolabe doctor` shows which rule applied.
+If you run Astrolabe CLI anywhere inside a folder that has `.obsidian/` above it, that folder is the vault. `.astrolabe/` works the same way for vaults that have never seen Obsidian. `-C DIR` and `$ASTROLABE_DIR` take precedence over it; the vault you stand in takes precedence over the remembered vault (config `dir`). The full order is under [Vault root](#vault-root) above, and `astrolabe doctor` shows which rule applied.
 
 The scan skips:
 

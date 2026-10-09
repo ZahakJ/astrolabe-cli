@@ -38,6 +38,8 @@ func init() {
 		"render":    (*app).cmdRender,
 		"export":    (*app).cmdExport,
 		"path":      (*app).cmdPath,
+		"vault":     (*app).cmdVault,
+		"learn":     (*app).cmdLearn,
 		"doctor":    (*app).cmdDoctor,
 		"help":      (*app).cmdHelp,
 		"version":   (*app).cmdVersion,
@@ -57,7 +59,8 @@ func Verbs() []string {
 
 var verbOrder = []string{
 	"add", "new", "today", "find", "ls", "pick", "tasks", "tags", "links",
-	"backlinks", "render", "export", "path", "doctor", "help", "version",
+	"backlinks", "render", "export", "path", "vault", "learn", "doctor", "help",
+	"version",
 }
 
 func (a *app) run() int {
@@ -129,18 +132,16 @@ func (a *app) config() *vault.Config {
 	return cfg
 }
 
-// resolveRoot picks the vault root per DESIGN.md §3.
+// resolveRoot picks the vault root per DESIGN.md §3. A remembered vault
+// that no longer exists is skipped with a one-line warning on stderr.
 func (a *app) resolveRoot() (vault.Root, error) {
 	if a.root.Dir != "" {
 		return a.root, nil
 	}
-	cfgDir := ""
-	if v, ok := a.config().Get("dir"); ok {
-		cfgDir = v
-	}
+	cfgDir, _ := a.config().FileValue("dir")
 	r, err := vault.ResolveRoot(vault.RootInputs{
 		Flag:   a.g.dir,
-		Env:    firstNonEmpty(a.getenv("ASTROLABE_DIR"), a.getenv("FOLIO_DIR")), // FOLIO_DIR: the former name
+		Env:    a.envDir(),
 		Config: cfgDir,
 		Cwd:    a.env.Cwd,
 		Home:   a.env.Home,
@@ -151,8 +152,24 @@ func (a *app) resolveRoot() (vault.Root, error) {
 		}
 		return r, err
 	}
+	if r.Stale != "" && !a.quietStale && r.Source != vault.RootFromFlag && r.Source != vault.RootFromEnv {
+		a.errorf("the remembered vault %s; skipping it (`astrolabe vault` to change)", a.staleShown(r))
+	}
 	a.root = r
 	return r, nil
+}
+
+// envDir is $ASTROLABE_DIR (or $FOLIO_DIR, the former name).
+func (a *app) envDir() string {
+	return firstNonEmpty(a.getenv("ASTROLABE_DIR"), a.getenv("FOLIO_DIR"))
+}
+
+// staleShown is Root.Stale with the path home-relative.
+func (a *app) staleShown(r vault.Root) string {
+	if strings.HasPrefix(r.Stale, r.Remembered) {
+		return vault.DisplayPath(r.Remembered, a.env.Home) + r.Stale[len(r.Remembered):]
+	}
+	return r.Stale
 }
 
 // vault opens the vault (without scanning it).
@@ -164,7 +181,11 @@ func (a *app) vault() (*vault.Vault, error) {
 	if err != nil {
 		return nil, err
 	}
-	return a.openVaultAt(r)
+	v, err := a.openVaultAt(r)
+	if err == nil {
+		a.rooted = true
+	}
+	return v, err
 }
 
 func (a *app) openVaultAt(r vault.Root) (*vault.Vault, error) {
@@ -179,6 +200,7 @@ func (a *app) openVaultAt(r vault.Root) (*vault.Vault, error) {
 	})
 	a.root = r
 	a.v = v
+	a.rooted = false
 	a.scanned = false
 	return v, nil
 }

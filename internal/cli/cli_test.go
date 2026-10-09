@@ -958,7 +958,9 @@ func TestExampleVault(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(dir, ".obsidian", "daily-notes.json")); err != nil {
 		t.Skip("examples/vault not present")
 	}
-	s := &sandbox{t: t, home: t.TempDir(), vault: dir, env: map[string]string{"LANG": "en_US.UTF-8"}}
+	home := t.TempDir()
+	s := &sandbox{t: t, home: home, vault: dir, env: map[string]string{"LANG": "en_US.UTF-8", "HOME": home,
+		"XDG_CONFIG_HOME": filepath.Join(home, ".config"), "XDG_STATE_HOME": filepath.Join(home, ".state")}}
 	res := s.must(0, run{args: []string{"ls", "-l"}, cwd: filepath.Join(dir, "daily")})
 	if n := len(strings.Split(strings.TrimSpace(res.stdout), "\n")); n < 14 {
 		t.Errorf("example vault has %d notes", n)

@@ -542,7 +542,7 @@ func (a *app) drawTree(r term.Rect, over bool) {
 		s.VLine(r.X+r.W, r.Y, r.H, a.gl.VLine, a.st.pageRule)
 	}
 	inner := term.Rect{X: r.X + 2, Y: r.Y + 1, W: r.W - 3, H: r.H - 1}
-	head := filepathBase(a.v.Root())
+	head := a.dispS(a.vaultName())
 	hs := mu.With(boldAttr)
 	if t.focus {
 		hs = ac.With(boldAttr)

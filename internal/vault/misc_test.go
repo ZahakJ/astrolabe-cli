@@ -34,6 +34,7 @@ func TestResolveRoot(t *testing.T) {
 	check("flag", RootInputs{Flag: "rel", Env: "/e", Cwd: plain, Home: home}, filepath.Join(plain, "rel"), RootFromFlag, false)
 	check("env", RootInputs{Env: "~/n", Config: "/c", Cwd: plain, Home: home}, filepath.Join(home, "n"), RootFromEnv, false)
 	check("config", RootInputs{Config: vault, Cwd: plain, Home: home}, vault, RootFromConfig, true)
+	check("marker beats config", RootInputs{Config: plain, Cwd: deep, Home: home}, vault, RootFromMarker, true)
 	check("marker", RootInputs{Cwd: deep, Home: home}, vault, RootFromMarker, true)
 	check("cwd md", RootInputs{Cwd: plain, Home: home}, plain, RootFromCwd, true)
 	check("default", RootInputs{Cwd: empty, Home: home}, filepath.Join(home, "notes"), RootFromDefault, false)

@@ -59,6 +59,7 @@ type harnessOpt struct {
 	glyphs  theme.Glyphs
 	noScan  bool
 	ext     bool
+	home    string // home directory for the vault's display name
 }
 
 // copyVault copies examples/vault into a temporary directory.
@@ -129,6 +130,7 @@ func newHarness(t *testing.T, o harnessOpt) *harness {
 		RecentFile:   filepath.Join(state, "recent"),
 		RecoveredDir: filepath.Join(state, "recovered"),
 		Cwd:          state,
+		Home:         o.home,
 		Now:          func() time.Time { return testNow },
 	})
 	return &harness{t: t, a: a, vt: vt, scr: scr, host: host, dir: o.dir, state: state}

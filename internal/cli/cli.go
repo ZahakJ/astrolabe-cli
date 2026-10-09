@@ -203,6 +203,8 @@ type TUIRequest struct {
 	Config *vault.Config
 	// RecentFile is the path of the recent-notes state file.
 	RecentFile string
+	// Home is the home directory, for showing the vault as "~/notes".
+	Home string
 	// StdoutTTY reports whether stdout is a terminal (the TUI itself always
 	// draws on /dev/tty).
 	StdoutTTY bool
@@ -282,6 +284,15 @@ type app struct {
 	// where an unknown word may be a mistyped verb.
 	firstArg bool
 	scanned  bool
+	// rooted is set when a.v is the vault ResolveRoot chose (not the vault
+	// of a single file opened from outside it): only that one is
+	// remembered (DESIGN.md §3).
+	rooted bool
+	// noRemember stops this run from remembering its vault (doctor, vault).
+	noRemember bool
+	// quietStale stops resolveRoot from warning about a stale remembered
+	// vault (the verb reports it itself).
+	quietStale bool
 }
 
 func newApp(env Env) *app {
@@ -331,6 +342,7 @@ func (e *notFound) Error() string { return e.msg }
 
 // exitCode maps a verb's error to the exit code and prints its message.
 func (a *app) finish(err error) int {
+	a.afterRun()
 	if err == nil {
 		return ExitOK
 	}

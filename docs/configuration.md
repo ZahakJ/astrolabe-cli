@@ -20,7 +20,7 @@ There are six themes: `onyx` (the default: pure neutral greys with gold as the o
 
 | Key | Values (default) | Effect | Override |
 |---|---|---|---|
-| `dir` | path | the vault, used when there is no `-C` | `ASTROLABE_DIR`, `-C DIR` |
+| `dir` | path | the remembered vault: written by the first `-C DIR` and by `astrolabe vault DIR`, used when there is no `-C`, `$ASTROLABE_DIR` or vault marker above the working directory | `ASTROLABE_DIR`, `-C DIR` |
 | `theme` | `onyx` `iron-gall` `parchment` `graphite` `mocha` `sidereal` (`onyx`) | colours | `ASTROLABE_THEME`, `--theme` |
 | `measure` | columns (`78`) | maximum width of the page text | `ASTROLABE_MEASURE`, `:set wrap=N` |
 | `ground` | `on` `off` (`on`) | paint the theme's background at 256 colours and above; `off` keeps the terminal's own | `ASTROLABE_GROUND` |

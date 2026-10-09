@@ -2,13 +2,13 @@ package tui
 
 import (
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/ZahakJ/astrolabe-cli/internal/editor"
 	"github.com/ZahakJ/astrolabe-cli/internal/term"
 	"github.com/ZahakJ/astrolabe-cli/internal/text"
 	"github.com/ZahakJ/astrolabe-cli/internal/theme"
+	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
 // wordsPerMinute sets the reading-time estimate.
@@ -144,7 +144,9 @@ func (a *app) statusInfo() string {
 	return ""
 }
 
-// drawCrumb draws "✦ folder › sub › Note title ●" in [1, limit).
+// drawCrumb draws "✦ vault › folder › sub › Note title ●" in [1, limit).
+// Below 60 columns only the note name is shown. Folders are the first to
+// ellipsise, then the vault name goes; the note name stands last.
 func (a *app) drawCrumb(y, limit int, narrow bool) {
 	s := a.scr
 	x := 1
@@ -166,6 +168,13 @@ func (a *app) drawCrumb(y, limit int, narrow bool) {
 	avail := limit - x - dirtyW
 	if narrow {
 		folders = nil
+	} else if vn := a.crumbVault(); vn != "" {
+		vn = a.dispS(vn)
+		if vw := text.Width(vn) + text.Width(sep); vw+nameW <= avail {
+			x = s.PutStringClip(x, y, vn, a.st.sMuted, limit)
+			x = s.PutStringClip(x, y, sep, a.st.sFaint, limit)
+			avail -= vw
+		}
 	}
 	// Folders are the first to ellipsise; the note name stands last.
 	var crumb []string
@@ -206,7 +215,7 @@ func (a *app) drawCrumb(y, limit int, narrow bool) {
 func (a *app) crumbParts() (name string, folders []string, dirty bool) {
 	switch a.view {
 	case viewHome:
-		return filepath.Base(a.v.Root()), nil, false
+		return a.vaultPath(), nil, false
 	case viewEditor:
 		if a.edit == nil {
 			return "", nil, false
@@ -222,6 +231,32 @@ func (a *app) crumbParts() (name string, folders []string, dirty bool) {
 		return "stdin", nil, false
 	}
 	return d.title(), splitFolders(d.path), false
+}
+
+// vaultPath is the vault as people say it: "~/notes", or the absolute path
+// outside the home directory (the home screen).
+func (a *app) vaultPath() string { return vault.DisplayPath(a.v.Root(), a.cfg.Home) }
+
+// vaultName is the vault's short name for the status bar and the tree:
+// vaultPath when short, else the folder's own name.
+func (a *app) vaultName() string { return vault.ShortName(a.v.Root(), a.cfg.Home) }
+
+// crumbVault is the vault name leading the breadcrumb of a note ("" for
+// the home screen, which names the vault itself, and for stdin).
+func (a *app) crumbVault() string {
+	switch a.view {
+	case viewReader:
+		if a.doc == nil || a.doc.stdin {
+			return ""
+		}
+	case viewEditor:
+		if a.edit == nil {
+			return ""
+		}
+	default:
+		return ""
+	}
+	return a.vaultName()
 }
 
 func splitFolders(p string) []string {

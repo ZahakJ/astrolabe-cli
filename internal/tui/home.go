@@ -135,7 +135,7 @@ func (a *app) drawHome(r term.Rect) {
 	if !a.v.Scanned() {
 		count += " so far " + a.gl.Ellipsis
 	}
-	center(count+"  "+a.gl.Dot+"  "+a.dispS(filepathBase(a.v.Root())), a.st.muted)
+	center(count+"  "+a.gl.Dot+"  "+a.dispS(a.vaultPath()), a.st.muted)
 	y++
 
 	blockW := colW * 2

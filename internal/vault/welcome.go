@@ -83,3 +83,14 @@ func EnsureWelcome(dir string) (bool, error) {
 	}
 	return err == nil, err
 }
+
+// WriteWelcome writes WelcomeNote as dir/Welcome.md when no file of that
+// name exists (for `astrolabe learn`), creating dir as needed. It reports
+// whether the note was written; an existing Welcome.md is left alone.
+func WriteWelcome(dir string) (bool, error) {
+	err := createExclusive(filepath.Join(dir, WelcomeName), []byte(WelcomeNote))
+	if errors.Is(err, fs.ErrExist) {
+		return false, nil
+	}
+	return err == nil, err
+}

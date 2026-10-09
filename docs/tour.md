@@ -6,7 +6,7 @@ The repository includes a sample vault, so you can try everything below without 
 
 1. **Install and check.** Run `astrolabe version`, then `astrolabe doctor`. `doctor` reports what Astrolabe CLI detected: colour depth, glyphs, bidi, which vault it chose and why, and your config file. It ends with a test card of colours and glyphs.
 
-2. **Point it at notes.** Run Astrolabe CLI inside the sample vault (`git clone https://github.com/ZahakJ/astrolabe-cli && cd astrolabe-cli/examples/vault`), or inside your own Obsidian vault. Any folder that has `.obsidian/` or `.astrolabe/` above the current directory counts as a vault. Otherwise Astrolabe CLI uses `~/notes`. To make one vault the default everywhere, set `export ASTROLABE_DIR=~/notes` or put `dir = ~/notes` in the config file.
+2. **Point it at notes.** Run Astrolabe CLI inside the sample vault (`git clone https://github.com/ZahakJ/astrolabe-cli && cd astrolabe-cli/examples/vault`), or inside your own Obsidian vault. Any folder that has `.obsidian/` or `.astrolabe/` above the current directory counts as a vault. Otherwise Astrolabe CLI uses the vault it remembers, else `~/notes`. Run `astrolabe -C ~/my-notes` once and that folder is remembered; `astrolabe vault` shows which vault is used and why.
 
 3. **Capture a thought from the shell.**
 
