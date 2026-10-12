@@ -1,0 +1,206 @@
+/* Astrolabe CLI manual: the onyx (dark) and parchment (light) themes of the terminal UI, applied to mdBook's
+   light and navy themes. Every variable of mdBook 0.5's variables.css is set here. */
+
+:root {
+    --mono-font: ui-monospace, "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+    --sans-font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+    --content-max-width: 760px;
+}
+
+.navy {
+    --bg: #111111;
+    --fg: #e4e4e4;
+    --accent: #d4a72c;
+    --muted: #9c9c9c;
+    --surface: #1a1a1a;
+    --lines: #2a2a2a;
+
+    --sidebar-bg: #0c0c0c;
+    --sidebar-fg: #e4e4e4;
+    --sidebar-non-existant: #686868;
+    --sidebar-active: #d4a72c;
+    --sidebar-spacer: #2a2a2a;
+
+    --scrollbar: #333333;
+
+    --icons: #9c9c9c;
+    --icons-hover: #d4a72c;
+
+    --links: #e3b341;
+
+    --inline-code-color: #e8c66a;
+    --inline-code-bg: #1a1a1a;
+
+    --theme-popup-bg: #1a1a1a;
+    --theme-popup-border: #2a2a2a;
+    --theme-hover: #2a2a2a;
+
+    --quote-bg: #1a1a1a;
+    --quote-border: #2a2a2a;
+
+    --warning-border: #e8c66a;
+
+    --table-border-color: #2a2a2a;
+    --table-header-bg: #1f1f1f;
+    --table-alternate-bg: #151515;
+
+    --searchbar-border-color: #2a2a2a;
+    --searchbar-bg: #1a1a1a;
+    --searchbar-fg: #e4e4e4;
+    --searchbar-shadow-color: #000000;
+    --searchresults-header-fg: #9c9c9c;
+    --searchresults-border-color: #2a2a2a;
+    --searchresults-li-bg: #1a1a1a;
+    --search-mark-bg: #6b5414;
+
+    --color-scheme: dark;
+
+    --copy-button-filter: invert(60%) sepia(8%) saturate(600%) hue-rotate(195deg) brightness(92%) contrast(88%);
+    --copy-button-filter-hover: invert(72%) sepia(35%) saturate(1500%) hue-rotate(205deg) brightness(102%) contrast(101%);
+
+    --footnote-highlight: #e3b341;
+
+    --overlay-bg: rgba(0, 0, 0, 0.55);
+
+    --blockquote-note-color: #e3b341;
+    --blockquote-tip-color: #9cc98a;
+    --blockquote-important-color: #d4a72c;
+    --blockquote-warning-color: #e8c66a;
+    --blockquote-caution-color: #e5675f;
+
+    --sidebar-header-border-color: #d4a72c;
+}
+
+.light, html:not(.js) {
+    --bg: #f2ebda;
+    --fg: #33291a;
+    --accent: #7a5f14;
+    --muted: #6b5d45;
+    --surface: #f8f3e6;
+    --lines: #ddd0b4;
+
+    --sidebar-bg: #ebe2cc;
+    --sidebar-fg: #33291a;
+    --sidebar-non-existant: #a39478;
+    --sidebar-active: #7a5f14;
+    --sidebar-spacer: #ddd0b4;
+
+    --scrollbar: #cbbd9f;
+
+    --icons: #6b5d45;
+    --icons-hover: #7a5f14;
+
+    --links: #7a5f14;
+
+    --inline-code-color: #6b4a12;
+    --inline-code-bg: #e9dfc7;
+
+    --theme-popup-bg: #f8f3e6;
+    --theme-popup-border: #ddd0b4;
+    --theme-hover: #e6dbc2;
+
+    --quote-bg: #f8f3e6;
+    --quote-border: #ddd0b4;
+
+    --warning-border: #9a6b00;
+
+    --table-border-color: #ddd0b4;
+    --table-header-bg: #e6dbc2;
+    --table-alternate-bg: #f5efe0;
+
+    --searchbar-border-color: #ddd0b4;
+    --searchbar-bg: #f8f3e6;
+    --searchbar-fg: #33291a;
+    --searchbar-shadow-color: #ddd0b4;
+    --searchresults-header-fg: #6b5d45;
+    --searchresults-border-color: #ddd0b4;
+    --searchresults-li-bg: #f8f3e6;
+    --search-mark-bg: #ecd9a0;
+
+    --color-scheme: light;
+
+    --copy-button-filter: invert(45%) sepia(9%) saturate(700%) hue-rotate(195deg) brightness(92%) contrast(88%);
+    --copy-button-filter-hover: invert(29%) sepia(52%) saturate(1800%) hue-rotate(232deg) brightness(88%) contrast(92%);
+
+    --footnote-highlight: #7a5f14;
+
+    --overlay-bg: rgba(51, 41, 26, 0.25);
+
+    --blockquote-note-color: #7a5f14;
+    --blockquote-tip-color: #2e8540;
+    --blockquote-important-color: #7a5f14;
+    --blockquote-warning-color: #9a6b00;
+    --blockquote-caution-color: #c23a4e;
+
+    --sidebar-header-border-color: #7a5f14;
+}
+
+/* Type */
+html { font-family: var(--sans-font); }
+body { font-size: 1.6rem; }
+.content { line-height: 1.6; }
+h1, h2, h3, h4, h5, h6, .menu-title {
+    font-family: var(--mono-font);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+.navy .content h1, .light .content h1, html:not(.js) .content h1 { color: var(--accent); }
+.content h2, .content h3, .content h4 { color: var(--fg); }
+.content h2 { border-bottom: 1px solid var(--lines); padding-bottom: 0.2em; }
+.content .header:link, .content .header:visited { color: inherit; }
+code, pre, kbd { font-family: var(--mono-font); }
+
+/* Code */
+.navy pre, .navy pre > code, .navy .hljs,
+.light pre, .light pre > code, .light .hljs { background: var(--surface); color: var(--fg); }
+pre { border: 1px solid var(--lines); border-radius: 8px; }
+.navy :not(pre) > code, .light :not(pre) > code, html:not(.js) :not(pre) > code {
+    color: var(--inline-code-color);
+    background: var(--inline-code-bg);
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+}
+.navy a :not(pre) > code, .navy a > code { color: var(--links); }
+.light a > code { color: var(--links); }
+
+/* Blockquotes, used for warnings */
+blockquote { border-inline-start: 3px solid var(--accent); border-block: none; background: var(--quote-bg); border-radius: 0 8px 8px 0; }
+
+/* Tables */
+table { border-collapse: collapse; }
+table thead th { background: var(--table-header-bg); }
+table td, table th { border-color: var(--table-border-color); }
+
+/* Sidebar */
+.sidebar .chapter li a.active, .sidebar .chapter li a:hover { color: var(--sidebar-active); }
+.chapter li.chapter-item a.active { font-weight: 600; }
+
+/* Captures */
+.content img { max-width: 100%; height: auto; border: 1px solid var(--lines); border-radius: 8px; display: block; margin: 1em auto; }
+.content p > em:only-child { color: var(--muted); }
+
+/* The link back to the landing page, inserted by manual.js */
+.astro-home {
+    font-family: var(--mono-font);
+    font-weight: 700;
+    color: var(--accent) !important;
+    text-decoration: none;
+    margin-inline: 8px 4px;
+    align-self: center;
+    font-size: 1.6rem;
+}
+.astro-home:hover { text-decoration: underline; }
+
+/* Long paths and commands in running text wrap instead of widening the page */
+.content p code, .content li code { overflow-wrap: anywhere; }
+
+@media (max-width: 420px) {
+    .content { padding-inline: 4px; }
+    .content pre { font-size: 0.8em; }
+}
+
+/* On a phone the menu bar has room for either the home link or the full title; keep both short. */
+@media (max-width: 480px) {
+    .menu-title { font-size: 1.1rem; }
+    .astro-home { font-size: 0.95rem; }
+}

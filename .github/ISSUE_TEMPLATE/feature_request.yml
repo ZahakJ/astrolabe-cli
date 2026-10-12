@@ -1,0 +1,19 @@
+name: Feature request
+description: Something Astrolabe CLI should do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do and where the tool gets in the way. Check "Design decisions" in the manual first; some things are out of scope on purpose.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like instead
+  - type: input
+    id: elsewhere
+    attributes:
+      label: How Obsidian, Vim or Emacs handle it, if they do

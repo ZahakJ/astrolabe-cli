@@ -1,4 +1,11 @@
-<p align="center"><img src="docs/logo.svg" width="120" alt="The Astrolabe mark"></p>
+<p align="center"><img src="docs/media/banner.png" alt="Astrolabe CLI — your Markdown notes, beautifully, in the terminal" width="820"></p>
+
+<p align="center">
+  <a href="https://github.com/ZahakJ/astrolabe-cli/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/ZahakJ/astrolabe-cli?color=d4a72c&labelColor=111111"></a>
+  <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-d4a72c?labelColor=111111"></a>
+  <a href="https://zahakj.github.io/astrolabe-cli/manual/"><img alt="Manual" src="https://img.shields.io/badge/manual-read-e4e4e4?labelColor=111111"></a>
+  <img alt="Linux and macOS, amd64 and arm64" src="https://img.shields.io/badge/linux%20%7C%20macos-amd64%20%7C%20arm64-9c9c9c?labelColor=111111">
+</p>
 
 # astrolabe-cli
 
@@ -77,6 +84,8 @@ Every verb, flag, exit code and the search syntax are in the [shell reference](d
 
 ## Documentation
 
+The home page is <https://zahakj.github.io/astrolabe-cli/> and the manual, which collects the pages below with a chapter on Arabic in the terminal, is <https://zahakj.github.io/astrolabe-cli/manual/>.
+
 - [The first five minutes, in full](docs/tour.md): the guided tour with captures.
 - [Keymap](docs/keymap.md): every key in the reader, overlays, panels and editor.
 - [Shell reference](docs/cli.md): every verb and flag, search syntax, exit codes, sample output, aliases and snippets.
@@ -93,4 +102,4 @@ Every verb, flag, exit code and the search syntax are in the [shell reference](d
 
 Every reader and editor key and every verb was run on the real binary on Linux, in CentOS 7 to Alpine containers, against a 1,525-note Obsidian vault, and in real kitty and foot windows for right-to-left text. The macOS binaries are tested only in CI and the arm64 binaries are cross-compiled; neither has been run by hand. Details are in [Verified on](docs/verified.md).
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). Contributing and reporting security problems: [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md).

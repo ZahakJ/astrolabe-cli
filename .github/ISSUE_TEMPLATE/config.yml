@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Manual
+    url: https://zahakj.github.io/astrolabe-cli/manual/
+    about: Install, first run, the keymap, vaults, Arabic in the terminal, configuration.
+  - name: Security
+    url: https://github.com/ZahakJ/astrolabe-cli/security/advisories/new
+    about: Report a vulnerability privately.

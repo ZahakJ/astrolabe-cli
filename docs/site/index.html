@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Astrolabe CLI</title>
+<meta name="description" content="Astrolabe CLI: your Markdown notes, beautifully, in the terminal. One static binary with a reader that typesets notes, a Vim-style editor and shell verbs; opens an Obsidian vault as it is; Arabic shaped right to left even in kitty.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f2ebda" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Astrolabe CLI">
+<meta property="og:description" content="Your Markdown notes, beautifully, in the terminal. One static binary; opens an Obsidian vault as it is.">
+<meta property="og:url" content="https://zahakj.github.io/astrolabe-cli/">
+<meta property="og:image" content="https://zahakj.github.io/astrolabe-cli/media/banner.png">
+<meta property="og:image:width" content="1640">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Astrolabe CLI: your Markdown notes, beautifully, in the terminal. Beside the words, two kitty windows: an English note and an Arabic note laid out right to left.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%23111111'/%3E%3Ccircle cx='50' cy='54' r='32' fill='none' stroke='%23d4a72c' stroke-width='7'/%3E%3Ccircle cx='50' cy='54' r='14' fill='none' stroke='%23d4a72c' stroke-width='4'/%3E%3Cpath d='M72 34 28 74' stroke='%23d4a72c' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the content</a>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="wordmark" href="./" aria-label="Astrolabe CLI, home"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <circle cx="50" cy="9" r="5" stroke-width="2.6"/> <circle cx="50" cy="55" r="40" stroke-width="4"/> <circle cx="50" cy="55" r="28" stroke-width="1.6"/> <circle cx="50" cy="55" r="16" stroke-width="1.6"/> <path d="M75.28 33.79 L24.72 76.21" stroke-width="2.8"/> <path d="M77.08 35.93 L80.64 29.29 L73.48 31.64 Z M22.92 74.07 L19.36 80.71 L26.52 78.36 Z" fill="currentColor" stroke="none"/> <circle cx="50" cy="55" r="2.52" fill="currentColor" stroke="none"/> <path d="M68.74 29.99 Q68.74 34.19 69.57 33.36 L72.94 34.19 Q68.74 34.19 69.57 35.02 L68.74 38.39 Q68.74 34.19 67.90 35.02 L64.54 34.19 Q68.74 34.19 67.90 33.36 Z" fill="currentColor" stroke="none"/></svg>astrolabe</a>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="./manual/">Manual</a></li>
+        <li><a href="https://github.com/ZahakJ/astrolabe-cli">GitHub</a></li>
+        <li><a href="#install">Install</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero wrap" aria-labelledby="hero-title">
+  <h1 id="hero-title">Your Markdown notes, beautifully, in the terminal.</h1>
+  <p class="lede">Astrolabe CLI is a reader that typesets your notes, a small Vim-style editor and a set of shell verbs for capture and search, in one static binary. It opens any folder of <code>.md</code> files, or an Obsidian vault exactly as it is, and adds nothing to it: no database, no index on disk.</p>
+  <p class="actions">
+    <a class="btn btn-primary" href="#install">Install</a>
+    <a class="btn" href="./manual/">Read the manual</a>
+  </p>
+
+  <figure class="shot">
+    <img src="shots/kitty-hero.png" width="1440" height="900" alt="Two kitty windows running Astrolabe CLI on the same vault. Left: an English note, Celestial navigation, with gold tags, a callout and a numbered table of contents. Right: an Arabic note, الأسطرلاب, aligned right to left, with a quotation, a bulleted list and a table. A status bar at the bottom of each shows the vault, the note, the word count and READ.">
+    <figcaption>Two real kitty windows on the sample vault. The headings carry weight and colour instead of <code>#</code> marks; the Arabic note is shaped and laid out right to left by Astrolabe CLI itself.</figcaption>
+  </figure>
+</section>
+
+<section class="features wrap" aria-label="What it does">
+  <article class="feature">
+    <figure class="term" aria-labelledby="shell-caption">
+      <div class="term-bar" aria-hidden="true"><span class="dots"><i></i><i></i><i></i></span><span class="term-title">~/vault · zsh</span></div>
+<pre class="term-body" role="img" aria-label="A terminal transcript. astrolabe add, call the plumber about the boiler: added to daily/2026-10-11.md line 3. astrolabe add -t, renew passport due 2 November: added as a task on line 4. astrolabe find boiler: one match in the daily note, line 3, with boiler highlighted. astrolabe vault: the vault is ~/vault, chosen because you are inside it."><span class="ln"><span class="prompt">$</span> astrolabe add "call the plumber about the boiler"</span><span class="ln"><span class="t-gold">✦</span> Added to <span class="t-muted">daily/</span><span class="t-gold">2026-10-11.md</span><span class="t-faint">:3</span></span><span class="ln">  <span class="t-muted">- 17:40 call the plumber about the boiler</span></span><span class="t-gap"></span><span class="ln"><span class="prompt">$</span> astrolabe add -t "renew passport due:2026-11-02"</span><span class="ln"><span class="t-gold">✦</span> Added to <span class="t-muted">daily/</span><span class="t-gold">2026-10-11.md</span><span class="t-faint">:4</span></span><span class="ln">  <span class="t-muted">- [ ] renew passport due:2026-11-02</span></span><span class="t-gap"></span><span class="ln"><span class="prompt">$</span> astrolabe find boiler</span><span class="ln"><span class="t-muted">daily/</span><span class="t-gold">2026-10-11.md</span>  <span class="t-muted">Sunday, 11 October 2026</span></span><span class="ln">  <span class="t-faint">3 │</span> 17:40 call the plumber about the <span class="t-gold"><b>boiler</b></span></span><span class="ln"><span class="t-faint">1 match in 1 note</span></span><span class="t-gap"></span><span class="ln"><span class="prompt">$</span> astrolabe vault</span><span class="ln"><span class="t-gold">✦</span> <span class="t-bold">~/vault</span></span><span class="ln">  <span class="t-muted">chosen by   </span>you are inside it (.obsidian/ or .astrolabe/ above …)</span><span class="ln">  <span class="t-muted">remembered  </span>~/vault</span></pre>
+      <figcaption id="shell-caption">A real run of v0.2.1 on a copy of the sample vault, colours as printed. In a pipe the same verbs print plain <code>path:line:text</code>.</figcaption>
+    </figure>
+    <div class="text">
+      <h2>Capture and search from the shell</h2>
+      <p><code>astrolabe add</code> appends exactly one line to today's daily note and changes nothing else in the file; <code>-t</code> makes it a task. <code>find</code>, <code>ls</code>, <code>tasks</code>, <code>backlinks</code> and <code>pick</code> answer from the shell, with <code>--json</code> for scripts.</p>
+      <p>Run <code>astrolabe -C ~/my-notes</code> once and that folder is remembered; plain <code>astrolabe</code> then opens it from anywhere.</p>
+    </div>
+  </article>
+
+  <article class="feature flip">
+    <figure>
+      <img src="shots/agenda.png" width="1428" height="933" loading="lazy" alt="The agenda overlay in the reader: 43 open tasks grouped as Overdue in red, Today and Upcoming in gold, each with its due date and the note it lives in, and the hint: x toggles, Enter opens.">
+    </figure>
+    <div class="text">
+      <h2>Read, edit, keep track</h2>
+      <p>Move with <kbd>j</kbd> <kbd>k</kbd>, jump between headings with <kbd>]]</kbd>, fold with <kbd>za</kbd>, follow a link with <kbd>Tab</kbd> and <kbd>Enter</kbd>. Press <kbd>i</kbd> to edit the line under the cursor in the built-in editor, where Vim keys work; <kbd>Esc</kbd> twice saves and puts you back where you were.</p>
+      <p><kbd>Space</kbd> <kbd>t</kbd> is the agenda of every open task in the vault, by due date. <kbd>x</kbd> ticks a task by rewriting one character in the file. Writes are atomic, and a file that changed on disk is never overwritten without asking.</p>
+    </div>
+  </article>
+
+  <article class="feature">
+    <figure>
+      <img src="shots/kitty-arabic.png" width="1432" height="742" loading="lazy" alt="An Arabic note in kitty, رحلة إلى الجبل, aligned to the right: bullets, a quotation, a callout, a table and three tasks with due dates, and an outline and backlinks panel on the side.">
+    </figure>
+    <div class="text">
+      <h2>Arabic, right to left, in any terminal</h2>
+      <p>Most terminals print Arabic with its letters unjoined and its words backwards. Astrolabe CLI shapes and orders the text itself, with a separate mode for kitty, which reverses right-to-left runs once more on its own. <code>astrolabe doctor</code> says which mode it chose and why.</p>
+      <p>Search folds Arabic: harakat and tatweel are ignored, and أ إ آ match ا, so the plain spelling finds every form.</p>
+    </div>
+  </article>
+</section>
+
+<section id="install" class="install wrap" data-release="ZahakJ/astrolabe-cli" aria-labelledby="install-title">
+  <h2 id="install-title">Install</h2>
+  <p>On Linux or macOS, as yourself (no root):</p>
+  <div class="codebox">
+<pre><code id="install-line">curl -fsSL https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh</code></pre>
+    <button type="button" class="copy" data-copy="install-line" hidden>Copy</button>
+  </div>
+  <p>It puts one static binary of about 5.5 MB in <code>~/.local/bin</code>, checked against the release checksums, with the short alias <code>ast</code>. Then try it on the sample vault, or point it at your notes:</p>
+<pre class="plain"><code>astrolabe doctor
+astrolabe -C ~/my-notes</code></pre>
+
+  <div class="release">
+    <p class="release-line">Latest release <span data-release-tag>v0.2.1</span>, <time data-release-date datetime="2026-10-09">9 October 2026</time></p>
+    <p><a class="btn btn-primary" data-release-primary data-release-verb="Download" href="https://github.com/ZahakJ/astrolabe-cli/releases/latest">Download from the releases page</a></p>
+    <ul class="assets" data-release-assets>
+      <li><a href="https://github.com/ZahakJ/astrolabe-cli/releases/latest/download/astrolabe-linux-amd64">Linux x86_64</a> <code>astrolabe-linux-amd64</code></li>
+      <li><a href="https://github.com/ZahakJ/astrolabe-cli/releases/latest/download/astrolabe-linux-arm64">Linux arm64</a> <code>astrolabe-linux-arm64</code></li>
+      <li><a href="https://github.com/ZahakJ/astrolabe-cli/releases/latest/download/astrolabe-darwin-arm64">macOS, Apple silicon</a> <code>astrolabe-darwin-arm64</code></li>
+      <li><a href="https://github.com/ZahakJ/astrolabe-cli/releases/latest/download/astrolabe-darwin-amd64">macOS, Intel</a> <code>astrolabe-darwin-amd64</code></li>
+      <li><a href="https://github.com/ZahakJ/astrolabe-cli/releases/latest/download/checksums.txt">SHA-256 checksums</a> <code>checksums.txt</code></li>
+    </ul>
+    <p class="note">Tested by hand on Linux, from CentOS 7 to Alpine. The macOS binaries have run only in CI, and the arm64 binaries are cross-compiled and unrun.</p>
+  </div>
+
+  <p>Open source, free. MIT licence. Step by step: <a href="./manual/install.html">Install</a>, then <a href="./manual/tour.html">First run</a>.</p>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <nav aria-label="Footer">
+      <ul>
+        <li><a href="./manual/">Manual</a></li>
+        <li><a href="./manual/keymap.html">Keymap</a></li>
+        <li><a href="https://github.com/ZahakJ/astrolabe-cli">Repository</a></li>
+        <li><a href="./manual/changelog.html">Changelog</a></li>
+      </ul>
+    </nav>
+    <p>The terminal companion to <a href="https://github.com/ZahakJ/astrolabe">Astrolabe</a>, the notes app for the web, desktop and phone, which opens the same vault.</p>
+  </div>
+</footer>
+
+<script>
+window.releaseAssets = [
+  { test: /^astrolabe-linux-amd64$/, os: 'linux', label: 'Linux x86_64' },
+  { test: /^astrolabe-linux-arm64$/, os: 'any', label: 'Linux arm64' },
+  { test: /^astrolabe-darwin-arm64$/, os: 'mac', label: 'macOS, Apple silicon' },
+  { test: /^astrolabe-darwin-amd64$/, os: 'any', label: 'macOS, Intel' },
+  { test: /^checksums\.txt$/, os: 'any', label: 'SHA-256 checksums' }
+];
+(function () {
+  if (!navigator.clipboard || !window.isSecureContext) return;
+  document.querySelectorAll('button[data-copy]').forEach(function (b) {
+    b.hidden = false;
+    b.addEventListener('click', function () {
+      var src = document.getElementById(b.getAttribute('data-copy'));
+      navigator.clipboard.writeText(src.textContent).then(function () {
+        b.textContent = 'Copied';
+        setTimeout(function () { b.textContent = 'Copy'; }, 1600);
+      }, function () {});
+    });
+  });
+})();
+</script>
+<script src="release.js"></script>
+</body>
+</html>

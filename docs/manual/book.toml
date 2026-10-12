@@ -1,0 +1,13 @@
+[book]
+title = "Astrolabe CLI manual"
+authors = ["ZahakJ"]
+language = "en"
+src = "src"
+
+[output.html]
+site-url = "/astrolabe-cli/manual/"
+git-repository-url = "https://github.com/ZahakJ/astrolabe-cli"
+default-theme = "light"
+preferred-dark-theme = "navy"
+additional-css = ["theme/manual.css"]
+additional-js = ["theme/manual.js"]
