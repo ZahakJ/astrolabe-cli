@@ -1,4 +1,4 @@
-// Package editor is astrolabe's built-in modal editor (DESIGN.md §4.3): a
+// Package editor is astrolabe's built-in modal editor (docs/internals.md §4.3): a
 // deliberate Vim subset over a Markdown buffer, with Markdown assistance in
 // Insert mode and a styled-source display that soft-wraps to the page
 // measure.
@@ -16,7 +16,7 @@
 // # Command line
 //
 // The ":" command line and the "/" "?" search prompt are not drawn inside
-// the editor's rectangle: DESIGN.md §4.2 puts them in the status bar's row,
+// the editor's rectangle: docs/internals.md §4.2 puts them in the status bar's row,
 // which the host owns. The host draws them either with DrawCommandLine (which
 // also places the terminal cursor there) or from the raw state returned by
 // CommandLine. While the command line is active Draw hides the text cursor.
@@ -27,7 +27,7 @@
 // count; a BOM is not part of line 0). Columns are byte offsets into the line
 // and always fall on a grapheme-cluster boundary.
 //
-// # Choices where DESIGN.md is silent (each also noted at its code)
+// # Behaviour choices (each also noted at its code)
 //
 //   - Esc in Normal mode with nothing pending returns ActionLeave; the host
 //     saves first when Dirty (autosave on leave) and returns to the reader.
@@ -109,7 +109,7 @@ const (
 	// ActionSaveQuit: save if Dirty, then leave (:wq, :x, ZZ).
 	ActionSaveQuit
 	// ActionLeave: Esc in Normal mode with nothing pending — return to the
-	// reader, saving first if Dirty (DESIGN.md autosave on leave).
+	// reader, saving first if Dirty (autosave on leave).
 	ActionLeave
 	// ActionCommand: an ex command the editor does not handle itself;
 	// Result.Command holds it without the leading colon.
@@ -417,7 +417,7 @@ func (e *Editor) SetCursorLine(line int) {
 }
 
 // StartInsert enters Insert mode on the cursor line, as the reader's `i`
-// and `a` do (DESIGN.md §4.3: the loop is `i` … type … `Esc Esc`): at the
+// and `a` do (docs/internals.md §4.3: the loop is `i` … type … `Esc Esc`): at the
 // start of the line's text, after any quote, list, task or heading marker,
 // or (atEnd) at the end of the line, as `A` does. It is one ordinary insert
 // session, so `u` undoes it and `.` repeats it.

@@ -8,7 +8,7 @@ import (
 	"github.com/ZahakJ/astrolabe-cli/internal/term"
 )
 
-// The reader keymap of DESIGN.md §4.3 is one table: the dispatcher looks
+// The reader keymap of docs/internals.md §4.3 is one table: the dispatcher looks
 // keys up in it, the help overlay prints it, and the leader palette lists its
 // Space bindings. Help therefore cannot drift from what the keys do.
 

@@ -6,7 +6,7 @@ body:
     id: problem
     attributes:
       label: The problem
-      description: What you are trying to do and where the tool gets in the way. Check "Design decisions" in the manual first; some things are out of scope on purpose.
+      description: What you are trying to do and where the tool gets in the way. "Design" in the manual lists what is out of scope.
     validations:
       required: true
   - type: textarea

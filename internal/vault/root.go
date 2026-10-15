@@ -12,7 +12,7 @@ import (
 // RootSource says which rule chose the vault root.
 type RootSource int
 
-// The sources, in the order ResolveRoot tries them (DESIGN.md §3).
+// The sources, in the order ResolveRoot tries them (docs/internals.md §3).
 const (
 	RootFromFlag    RootSource = iota // -C DIR / --dir
 	RootFromEnv                       // $ASTROLABE_DIR
@@ -54,7 +54,7 @@ type Root struct {
 	Stale string
 }
 
-// ResolveRoot picks the vault root in the order of DESIGN.md §3: flag,
+// ResolveRoot picks the vault root in the order of docs/internals.md §3: flag,
 // $ASTROLABE_DIR, the nearest ancestor of Cwd containing .obsidian/ or
 // .astrolabe/ (you are standing in a vault), the remembered vault (config
 // dir, skipped with Stale set when it no longer exists), ~/notes if it

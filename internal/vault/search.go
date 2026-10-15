@@ -17,7 +17,7 @@ import (
 )
 
 // RankClass orders search results: title hits, then heading hits, then
-// body hits (DESIGN.md §3).
+// body hits (docs/internals.md §3).
 type RankClass int
 
 const (

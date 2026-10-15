@@ -306,7 +306,7 @@ func (r *renderer) mdLink(n *md.Link, a attr, out []sp) []sp {
 }
 
 // shortURL shortens a bare URL longer than half the measure to its host
-// plus an ellipsis (DESIGN.md §5).
+// plus an ellipsis (docs/internals.md §5).
 func (r *renderer) shortURL(dest, label string) string {
 	if Width(label) <= r.measure/2 {
 		return label

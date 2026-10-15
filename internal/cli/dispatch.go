@@ -18,7 +18,7 @@ import (
 // verbFunc runs a verb with its arguments (global flags already removed).
 type verbFunc func(a *app, args []string) error
 
-// verbs are the reserved words of DESIGN.md §4.1. They are matched exactly:
+// verbs are the reserved words of docs/internals.md §4.1. They are matched exactly:
 // unique prefixes are deliberately not accepted, because a note may be
 // called "to".
 var verbs map[string]verbFunc
@@ -52,7 +52,7 @@ func IsVerb(word string) bool {
 	return ok
 }
 
-// Verbs returns the reserved verbs in the order of DESIGN.md §4.1.
+// Verbs returns the reserved verbs in the order of docs/cli.md.
 func Verbs() []string {
 	return append([]string(nil), verbOrder...)
 }
@@ -132,7 +132,7 @@ func (a *app) config() *vault.Config {
 	return cfg
 }
 
-// resolveRoot picks the vault root per DESIGN.md §3. A remembered vault
+// resolveRoot picks the vault root per docs/internals.md §3. A remembered vault
 // that no longer exists is skipped with a one-line warning on stderr.
 func (a *app) resolveRoot() (vault.Root, error) {
 	if a.root.Dir != "" {
@@ -307,7 +307,7 @@ func (a *app) human() bool { return a.env.StdoutTTY }
 // it is a terminal that is not TERM=dumb, or --color forced a profile. A
 // dumb terminal (Emacs shell buffers, some CI logs, serial consoles) prints
 // escape sequences as garbage, so it gets the plain text a pipe would get
-// (DESIGN.md §1, "degrade, never break"); the human layout, which
+// (docs/internals.md §1, "degrade, never break"); the human layout, which
 // depends only on StdoutTTY, is kept.
 func (a *app) styledStdout() bool {
 	if _, forced, _ := term.ParseProfile(a.g.color); forced {

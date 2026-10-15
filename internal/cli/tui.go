@@ -43,10 +43,10 @@ func tuiMissing() error {
 }
 
 // openDefault is plain `astrolabe`: today's daily note if it exists, else the
-// last note of this vault, else the home screen (DESIGN.md §4.1). The first
+// last note of this vault, else the home screen (docs/cli.md). The first
 // interactive run writes Welcome.md and opens it only when nothing is
 // remembered, the vault is the new ~/notes default and no vault in ~/notes
-// was ever used (DESIGN.md §3); `astrolabe learn` opens it on purpose.
+// was ever used (docs/internals.md §3); `astrolabe learn` opens it on purpose.
 func (a *app) openDefault() error {
 	if a.env.Hooks.RunTUI == nil {
 		return tuiMissing()

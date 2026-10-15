@@ -12,7 +12,7 @@ import (
 )
 
 // DefaultEscTimeout is how long a lone ESC waits for the rest of an escape
-// sequence before it is taken as the Escape key (DESIGN.md §6).
+// sequence before it is taken as the Escape key (docs/internals.md §6).
 const DefaultEscTimeout = 25 * time.Millisecond
 
 // OpenOptions configures Open.

@@ -1,5 +1,5 @@
 // Package cli implements astrolabe's shell face: the dispatcher for the command
-// line and every non-interactive verb of DESIGN.md §4.1 (add, new, today -p,
+// line and every non-interactive verb of docs/cli.md (add, new, today -p,
 // find, ls, tags, tasks, links, backlinks, path, doctor, help, version).
 //
 // The interactive entry points (astrolabe, astrolabe NOTE, astrolabe -, astrolabe today,
@@ -7,7 +7,7 @@
 // cli does not import. They are reached through Hooks, which cmd/astrolabe fills
 // in; a nil hook makes the verb fail with ErrNotBuilt before any side effect.
 //
-// Conventions (DESIGN.md §4.1):
+// Conventions (docs/internals.md §4.1):
 //   - results go to stdout, messages to stderr;
 //   - when stdout is not a terminal the output is machine-readable: no
 //     colour, no decoration, stable "path:line:text" or tab-separated forms;
@@ -136,7 +136,7 @@ type Display struct {
 // TUIMode says what the interactive application should open on.
 type TUIMode int
 
-// TUI modes, one per interactive entry point of DESIGN.md §4.1.
+// TUI modes, one per interactive entry point of docs/cli.md.
 const (
 	// ModeDefault is plain `astrolabe`. The CLI has already chosen the note:
 	// today's daily note if it exists, else the most recent note of this
@@ -182,7 +182,7 @@ func (m TUIMode) String() string {
 type TUIRequest struct {
 	Mode TUIMode
 	// Vault is open but not scanned yet (StartScan has been called, so the
-	// index fills in concurrently; paint first, per DESIGN.md §1.3).
+	// index fills in concurrently; paint first, per docs/internals.md §1.3).
 	Vault *vault.Vault
 	// Root is how the vault root was chosen. In single-file mode (a file
 	// outside any vault was named) Root.Dir is the file's vault per
@@ -286,7 +286,7 @@ type app struct {
 	scanned  bool
 	// rooted is set when a.v is the vault ResolveRoot chose (not the vault
 	// of a single file opened from outside it): only that one is
-	// remembered (DESIGN.md §3).
+	// remembered (docs/internals.md §3).
 	rooted bool
 	// noRemember stops this run from remembering its vault (doctor, vault).
 	noRemember bool

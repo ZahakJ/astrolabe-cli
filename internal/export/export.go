@@ -1,5 +1,5 @@
 // Package export turns a parsed note into one self-contained HTML document
-// (DESIGN.md §8): inline CSS in the manuscript style of the reader (serif
+// (docs/internals.md §8): inline CSS in the manuscript style of the reader (serif
 // body, gold accents, hairline rules, the same callouts, tables, task boxes
 // and lightly highlighted code), light and dark through
 // prefers-color-scheme, print-friendly, dir="auto" on every text block.

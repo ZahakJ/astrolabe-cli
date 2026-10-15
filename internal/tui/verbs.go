@@ -45,7 +45,7 @@ func titleOf(name, rel string) string {
 
 // Render is the cli.Hooks.Render entry point (`astrolabe render`): ANSI for a
 // terminal (or forced colour), plain text into a pipe. Piped output is never
-// reordered or shaped (DESIGN.md §6).
+// reordered or shaped (docs/internals.md §6).
 func Render(ctx context.Context, req cli.RenderRequest) error {
 	waitScan(ctx, req.Vault)
 	doc := md.ParseBytes(req.Source)

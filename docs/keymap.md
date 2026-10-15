@@ -1,6 +1,6 @@
 # Astrolabe CLI keymap
 
-This page lists every key in Astrolabe CLI, in the reader, overlays, panels and editor, for printing or keeping in a second window. Back to the [README](../README.md).
+Every key in the reader, overlays, panels and editor.
 
 The reader keys come from the keymap table in `internal/tui/keymap.go`. The in-app help (`?`) and the leader palette (press `Space` and wait) read the same table.
 
@@ -223,7 +223,7 @@ At 124 columns or wider, the context panel (outline above backlinks) opens by de
 
 ## Editor
 
-The editor implements a deliberate subset of Vim, and everything in it behaves as it does in Vim. The status bar shows `NORMAL`, `INSERT`, `VISUAL` or `V-LINE`. Lines that soft-wrap move by display line with `j`/`k`. A count, or an operator, makes them move by source line.
+The editor implements a subset of Vim. The status bar shows `NORMAL`, `INSERT`, `VISUAL` or `V-LINE`. Lines that soft-wrap move by display line with `j`/`k`. A count, or an operator, makes them move by source line.
 
 ### Modes and leaving
 

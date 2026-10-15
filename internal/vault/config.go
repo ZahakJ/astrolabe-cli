@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-// ConfigKeys are the keys of DESIGN.md §9.
+// ConfigKeys are the keys of docs/internals.md §9.
 var ConfigKeys = []string{
 	"dir", "theme", "measure", "ground", "bidi", "mouse",
 	"daily_dir", "daily_format", "editor", "ascii",

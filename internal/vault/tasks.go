@@ -14,7 +14,7 @@ type TaskRef struct {
 	Task  Task
 }
 
-// TaskGroups partitions tasks relative to a day (DESIGN.md §4.1 `astrolabe
+// TaskGroups partitions tasks relative to a day (docs/cli.md `astrolabe
 // tasks`).
 type TaskGroups struct {
 	Overdue  []TaskRef // due before today

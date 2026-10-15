@@ -5,7 +5,7 @@ import (
 	"unicode/utf8"
 )
 
-// Terminal runs (DESIGN.md §6, bidi=runs).
+// Terminal runs (docs/internals.md §6, bidi=runs).
 //
 // Some terminals (kitty) do no bidi but shape text with HarfBuzz one run at
 // a time, where a run is a stretch of adjacent cells drawn with the same

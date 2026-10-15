@@ -16,7 +16,7 @@ wget -qO- https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh
 
 The script picks the binary for this machine (`astrolabe-linux-amd64`, `-linux-arm64`, `-darwin-amd64` or `-darwin-arm64`) from the latest release, checks it against the release's `checksums.txt`, runs it once to make sure it works here, and puts it in `~/.local/bin`. It needs no root. It also creates the short alias `ast` next to it, unless another `ast` is already on your `PATH` (it says so) or `ASTROLABE_NO_ALIAS=1` is set. At the end it tells you whether `~/.local/bin` is on your `PATH` and, if not, the line that adds it.
 
-A real run, on a machine where another program already owns the name `ast`:
+On a machine where another program already owns the name `ast`:
 
 ```console
 $ curl -fsSL https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh
@@ -41,7 +41,7 @@ Options go after `sh -s --`, for example `… | sh -s -- --version v0.2.0`:
 
 ## By hand
 
-Download one file from the [releases page](https://github.com/ZahakJ/astrolabe-cli/releases), `chmod +x` it, and put it anywhere on your `PATH`. That is all the installer does.
+Download one file from the [releases page](https://github.com/ZahakJ/astrolabe-cli/releases), `chmod +x` it, and put it anywhere on your `PATH`.
 
 ## Check it
 
@@ -50,7 +50,7 @@ astrolabe version
 astrolabe doctor
 ```
 
-`doctor` reports what Astrolabe CLI detected about your terminal (colour depth, glyphs, the bidi mode for right-to-left text), which vault it chose and why, and your config file, and ends with a test card of colours and glyphs. If something looks wrong later, its output is the first thing to look at.
+`doctor` reports what Astrolabe CLI detected about your terminal (colour depth, glyphs, the bidi mode for right-to-left text), which vault it chose and why, and your config file, and ends with a test card of colours and glyphs.
 
 ## Build from source
 
@@ -65,10 +65,6 @@ make dist           # all four release binaries and checksums.txt in dist/
 ```
 
 `scripts/build.sh VERSION` is the release build: `CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=VERSION"` for linux/amd64, linux/arm64, darwin/amd64 and darwin/arm64, then `dist/checksums.txt`.
-
-## What was tested
-
-The installer was run over HTTP (curl and wget) and offline with `--from` in fresh `centos:7`, `rockylinux:9`, `debian:stable-slim` and `alpine` containers as a non-root user. The macOS binaries have only run in CI and the arm64 binaries are cross-compiled and unrun; see [Verified on](verified.md).
 
 ## Uninstall
 

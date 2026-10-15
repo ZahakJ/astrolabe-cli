@@ -11,7 +11,7 @@ import (
 )
 
 // MinColumn is the narrowest a shrunk table column may become before the
-// table switches to the stacked record layout (DESIGN.md §5).
+// table switches to the stacked record layout (docs/internals.md §5).
 const MinColumn = 6
 
 // colSep is the cell separator: a hairline with one cell of air each side.
@@ -28,7 +28,7 @@ func ColumnFloor(nat, word int) int {
 	return min(max(1, nat), max(MinColumn, min(word, MaxWordFloor)))
 }
 
-// ColumnWidths implements the table width algorithm of DESIGN.md §5. nat
+// ColumnWidths implements the table width algorithm of docs/internals.md §5. nat
 // holds each column's natural (unwrapped) width, floor the narrowest each
 // may become (see ColumnFloor; nil means min(nat, MinColumn)), and avail
 // the cells the table may use, separators included (sepWidth between

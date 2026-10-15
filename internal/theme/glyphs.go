@@ -2,7 +2,7 @@ package theme
 
 import "strings"
 
-// Glyphs is a set of symbols used by the renderer and the TUI (DESIGN.md §6).
+// Glyphs is a set of symbols used by the renderer and the TUI (docs/internals.md §6).
 // In the Unicode set every glyph is a single cell wide and present in DejaVu
 // Sans Mono, Menlo and Consolas-class fonts; no Nerd Font or emoji code
 // points are used. In the ASCII set some glyphs are wider than one cell
@@ -66,10 +66,8 @@ func CalloutKinds() []string {
 
 // UnicodeGlyphs is the default glyph set.
 //
-// Deviation from DESIGN.md §5: the design names ℹ (note) and ※ (bug) as
-// callout glyphs, but neither is present in DejaVu Sans Mono, which §6 sets
-// as the floor. The note/info callouts therefore use ¶ (a pilcrow, at home on
-// a manuscript page) and bug uses ✱.
+// The note/info callouts use ¶ and bug uses ✱: ℹ and ※ are missing from
+// DejaVu Sans Mono, the font floor of docs/internals.md §6.
 var UnicodeGlyphs = Glyphs{
 	Name:          "unicode",
 	Brand:         "✦",

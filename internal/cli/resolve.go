@@ -20,7 +20,7 @@ type noteRef struct {
 }
 
 // resolveNote turns a NOTE argument into a note of the vault, following
-// DESIGN.md §4.1: an existing file path (relative to the working directory,
+// docs/cli.md: an existing file path (relative to the working directory,
 // absolute, or "~/…"); else a vault-relative path; else a title, basename or
 // alias resolved like a wikilink; else a fuzzy match if exactly one note
 // matches. "Note#Heading", "Note#^block" and "path:LINE" suffixes give a
@@ -112,7 +112,7 @@ func (a *app) resolveFileArg(arg string) (noteRef, bool, error) {
 		}
 		return noteRef{Rel: filepath.ToSlash(rel)}, true, nil
 	}
-	// Outside the vault: the file's own vault (DESIGN.md §3).
+	// Outside the vault: the file's own vault (docs/internals.md §3).
 	froot, rel, err := vault.ResolveFileRoot(p, a.env.Cwd)
 	if err != nil {
 		return noteRef{}, true, err
@@ -283,7 +283,7 @@ func nearestVerb(arg string) string {
 }
 
 // typoVerb returns the verb a first argument is a typo of: within edit
-// distance 2 of it but not one of its prefixes (DESIGN.md §4.1: unique verb
+// distance 2 of it but not one of its prefixes (docs/internals.md §4.1: unique verb
 // prefixes are not verbs, so `astrolabe ad` may still open add.md). Such an
 // argument is not opened by a fuzzy match; it gets the suggestion instead.
 func typoVerb(arg string) string {

@@ -64,7 +64,7 @@ const (
 	viewPick          // `astrolabe pick`: the finder alone
 )
 
-// message is a transient status-bar message (DESIGN.md §4.2: 3 s).
+// message is a transient status-bar message (docs/internals.md §4.2: 3 s).
 type message struct {
 	text  string
 	err   bool
@@ -244,7 +244,7 @@ const (
 func (a *app) tooSmall() bool { return a.w < minW || a.h < minH }
 
 // ctxOpen reports whether the context panel is shown: by default only at
-// ≥ 124 columns, unless the user toggled it (DESIGN.md §4.2).
+// ≥ 124 columns, unless the user toggled it (docs/internals.md §4.2).
 func (a *app) ctxOpen() bool {
 	if a.view != viewReader || a.doc == nil {
 		return false

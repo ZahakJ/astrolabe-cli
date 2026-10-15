@@ -4,7 +4,7 @@ Astrolabe CLI is a reader, a small Vim-style editor and a set of shell verbs for
 
 ![The reader in kitty: an English note on the left and an Arabic note on the right, side by side](shots/kitty-hero.png)
 
-*Two kitty windows on the same vault. The Arabic note on the right is shaped and laid out right to left by Astrolabe CLI itself; kitty does no bidi of its own.*
+*Two kitty windows on the same vault. The Arabic note is shaped and laid out right to left by Astrolabe CLI; kitty does no bidi of its own.*
 
 ## What it is for
 
@@ -12,12 +12,8 @@ Astrolabe CLI is a reader, a small Vim-style editor and a set of shell verbs for
 - **Capturing from the shell without opening anything.** `astrolabe add "call the plumber"` appends one line to today's daily note, and every list verb prints plain lines in a pipe.
 - **Living inside an existing vault.** Wikilinks, aliases, tags, tasks, callouts and daily notes are read the way Obsidian reads them, and nothing is added to your notes folder: no database, no index on disk.
 
-## What it is not
-
-It does not run Obsidian plugins (no Dataview, Templater or Canvas), draws no graph and shows no images. It never touches the network at runtime. The [design decisions](design-decisions.md) chapter lists the rest of what is out of scope, and why.
-
 ## How to read this manual
 
-[Install](install.md) and [First run](tour.md) take five minutes and leave you able to use it. [Keymap](keymap.md) and the [shell reference](cli.md) are the references to keep open. [Vaults and your files](obsidian.md) says how the vault is chosen and what is promised about your files; read its *Data safety* section before pointing it at notes you care about. [Arabic and right-to-left text](arabic.md) is for anyone who writes in Arabic, Persian or Hebrew.
+[Install](install.md) and [First run](tour.md) get you started. [Keymap](keymap.md) and the [shell reference](cli.md) are the references. [Vaults and your files](obsidian.md) says how the vault is chosen and how files are written. [Arabic and right-to-left text](arabic.md) is for anyone who writes in Arabic, Persian or Hebrew.
 
-Astrolabe CLI is open source and free, under the MIT licence. The source is at [github.com/ZahakJ/astrolabe-cli](https://github.com/ZahakJ/astrolabe-cli).
+MIT licence. Source: [github.com/ZahakJ/astrolabe-cli](https://github.com/ZahakJ/astrolabe-cli).

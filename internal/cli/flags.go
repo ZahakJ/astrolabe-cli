@@ -8,7 +8,7 @@ import (
 	"github.com/ZahakJ/astrolabe-cli/internal/theme"
 )
 
-// globals are the flags accepted before or after any verb (DESIGN.md §4.1).
+// globals are the flags accepted before or after any verb (docs/internals.md §4.1).
 type globals struct {
 	dir     string // -C DIR / --dir DIR
 	theme   string // --theme NAME

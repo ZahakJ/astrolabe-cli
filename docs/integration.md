@@ -1,14 +1,12 @@
 # Using Astrolabe CLI with the shell, tmux and Neovim
 
-This page covers shell aliases, pipes and hooks, tmux popups, Neovim in both directions, and wiring Astrolabe CLI into rihla. Back to the [README](../README.md); the complete list of verbs is in the [shell reference](cli.md).
+Shell aliases, pipes and hooks, tmux popups and Neovim. Every verb is in the [shell reference](cli.md).
 
-Astrolabe CLI is meant to sit next to the tools you already use. Everything on this page was run against Astrolabe CLI's sample vault with tmux 3.7, Neovim 0.12, bash and zsh. Where a snippet depends on a newer version of a tool, the text says so.
-
-Three facts explain most of what follows:
+Three facts behind what follows:
 
 - **Paths.** In a pipe Astrolabe CLI prints `path:line:text` or tab-separated columns. Paths are relative to the current directory when you are inside the vault, and absolute otherwise. `new`, `today -p`, `path` and `pick` always print absolute paths.
-- **The terminal.** Interactive parts (`astrolabe`, `astrolabe pick`, `astrolabe new -o`) draw on `/dev/tty`. That is why `"$(astrolabe pick)"` works: the picker draws on the terminal while the chosen path goes to stdout.
-- **Which vault.** Astrolabe CLI remembers your vault: the first `astrolabe -C DIR` (or `astrolabe vault DIR`) writes it to the config key `dir`, and every later run uses it from any directory, including commands started by tmux, Neovim, cron or a git hook, because they read the same config file. Two things still come before it: `ASTROLABE_DIR`, and a folder with `.obsidian/` or `.astrolabe/` above the current directory. `astrolabe vault` shows which rule applied ([full order](cli.md#which-vault)).
+- **The terminal.** Interactive parts (`astrolabe`, `astrolabe pick`, `astrolabe new -o`) draw on `/dev/tty`. So in `"$(astrolabe pick)"` the picker draws on the terminal and the chosen path goes to stdout.
+- **Which vault.** Astrolabe CLI remembers your vault: the first `astrolabe -C DIR` (or `astrolabe vault DIR`) writes it to the config key `dir`, and every later run uses it from any directory, including commands started by tmux, Neovim, cron or a git hook. Two things still come before it: `ASTROLABE_DIR`, and a folder with `.obsidian/` or `.astrolabe/` above the current directory. `astrolabe vault` shows which rule applied ([full order](cli.md#which-vault)).
 
 ## Shell
 
@@ -99,7 +97,7 @@ The hook runs inside the repository. With a remembered vault the line goes there
 
 ### Cron or a systemd timer
 
-`astrolabe add` touches only today's daily note, so it is safe to run unattended:
+`astrolabe add` touches only today's daily note:
 
 ```sh
 # crontab: a line every weekday at 9:00 with the open overdue count
@@ -129,7 +127,7 @@ Notes on these bindings:
 - **Use single quotes.** Inside double quotes tmux expands `$line` itself while it reads the config, so the capture would always be empty.
 - **`--` ends Astrolabe CLI's options**, so a capture that starts with `-` is still text.
 - **Popups use tmux's global environment**, not your interactive shell's. If `astrolabe` is in `~/.local/bin` and the popup cannot find it, add `set-environment -g PATH "$HOME/.local/bin:$PATH"`, or write the full path to the binary. A remembered vault needs nothing here (it is in the config file); if you use `ASTROLABE_DIR` instead, add `set-environment -g ASTROLABE_DIR "$HOME/notes"` too.
-- **Default bindings.** `N`, `a`, `A` and `F` have no default binding in tmux 3.7. `C` (customize mode) and `T` are worth avoiding if you use them.
+- **Default bindings.** `N`, `a`, `A` and `F` have no default binding in tmux 3.7.
 - **The `-E` flag** closes the popup when Astrolabe CLI exits.
 - **The `-d` flag** runs Astrolabe CLI in the pane's directory so that a project vault (`.obsidian/` or `.astrolabe/` above the pane) is found before the remembered one; elsewhere the remembered vault opens. With `ASTROLABE_DIR` set it makes no difference.
 
@@ -232,9 +230,9 @@ How the pieces work:
 
 - **The picker** writes the chosen path to a temporary file. Inside a terminal buffer, stdout is the terminal itself, so the path could not be read from it.
 - **`:Capture`** runs `astrolabe add` as a plain process. In a pipe, Astrolabe CLI prints `path:line`.
-- **Nested Neovim.** If `EDITOR=nvim`, pressing `E` in the floating reader starts a second Neovim inside the float. That works, but you may prefer `i` and the built-in editor there.
+- **Nested Neovim.** If `EDITOR=nvim`, pressing `E` in the floating reader starts a second Neovim inside the float; `i` uses the built-in editor instead.
 
-Some more mappings you might add:
+More mappings:
 
 ```lua
 -- Today's daily note in the current window.
@@ -259,43 +257,29 @@ end, { nargs = "+" })
 theme = mocha
 ```
 
-`mocha` uses the Catppuccin Mocha colours: ground `#1e1e2e`, text `#cdd6f4`, accent mauve `#cba6f7`. If you run Neovim and tmux with a transparent background and want Astrolabe CLI to match, add `ground = off`. Astrolabe CLI then leaves the terminal's background alone and draws only the text colours. With `mocha`, Astrolabe CLI matches a Catppuccin Neovim and tmux.
+`mocha` uses the Catppuccin Mocha colours: ground `#1e1e2e`, text `#cdd6f4`, accent mauve `#cba6f7`. If you run Neovim and tmux with a transparent background and want Astrolabe CLI to match, add `ground = off`. Astrolabe CLI then leaves the terminal's background alone and draws only the text colours.
 
 ![Astrolabe CLI in the mocha theme](shots/mocha.svg)
 
-## rihla
+## Dotfiles bootstrap
 
-[rihla](https://github.com/ZahakJ/rihla) is a portable Neovim and tmux setup. These instructions are written for that repository. They assume only that it keeps a tmux config file, a Neovim config directory and some bootstrap or install script. Adapt the paths to its layout.
+Install during bootstrap (no root; re-running upgrades in place):
 
-1. **Install Astrolabe CLI during bootstrap.** The installer needs no root, puts `astrolabe` in `~/.local/bin`, verifies the release checksum, and upgrades in place when run again:
+```sh
+command -v astrolabe >/dev/null 2>&1 ||
+  curl -fsSL https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh
+```
 
-   ```sh
-   if ! command -v astrolabe >/dev/null 2>&1; then
-     curl -fsSL https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh \
-       || wget -qO- https://raw.githubusercontent.com/ZahakJ/astrolabe-cli/main/install.sh | sh
-   fi
-   ```
+Offline, ship the binary and run `sh install.sh --from ./astrolabe-linux-amd64`. `ASTROLABE_VERSION=vX.Y.Z` pins a release and `ASTROLABE_BIN_DIR=DIR` changes the target directory.
 
-   For a machine without internet access, ship the binary for its platform next to rihla and run `sh install.sh --from ./astrolabe-linux-amd64`. To pin a release, set `ASTROLABE_VERSION=vX.Y.Z`, and to install elsewhere, set `ASTROLABE_BIN_DIR=DIR`.
+Set a theme only if none is set, so a later change survives a re-run. Check for the `theme` line rather than the file, which Astrolabe CLI creates itself when it remembers a vault:
 
-2. **tmux.** Append the popup bindings from [Popups](#popups) to rihla's tmux config. If rihla does not already put `~/.local/bin` in tmux's global environment, add `set-environment -g PATH "$HOME/.local/bin:$PATH"`. Add `set -g set-clipboard on` if rihla does not set it.
+```sh
+cfg="${XDG_CONFIG_HOME:-$HOME/.config}/astrolabe-cli/config"
+if ! grep -qs '^[[:space:]]*theme[[:space:]]*=' "$cfg"; then
+  mkdir -p "$(dirname "$cfg")"
+  printf '%s\n' 'theme = mocha' 'editor = external' >> "$cfg"
+fi
+```
 
-3. **Neovim.** Copy `astrolabe.lua` (above) into rihla's Lua directory and require it from its `init.lua`. Before choosing `<leader>n…`, check rihla's existing leader mappings.
-
-4. **Astrolabe CLI config.** rihla uses Catppuccin Mocha. Add a matching theme only when the user has not chosen one, so a later personal change survives a re-run of the bootstrap. Check for the `theme` line rather than the file: Astrolabe CLI creates the file itself when it remembers the vault.
-
-   ```sh
-   cfg="${XDG_CONFIG_HOME:-$HOME/.config}/astrolabe-cli/config"
-   if ! grep -qs '^[[:space:]]*theme[[:space:]]*=' "$cfg"; then
-     mkdir -p "$(dirname "$cfg")"
-     printf '%s\n' 'theme = mocha' 'editor = external' >> "$cfg"
-   fi
-   ```
-
-   With `editor = external` and `EDITOR=nvim`, `i` and `E` in the reader both open Neovim.
-
-   Astrolabe CLI rewrites the `theme =` line when the user changes the theme with `Space T` or `:theme`, and the `dir =` line when it remembers a vault, keeping any other lines and comments. Do not manage this file with a symlink into rihla's repository unless that change should land in the repository.
-
-5. **The vault.** If the notes are not in `~/notes`, the user runs `astrolabe -C DIR` (or `astrolabe vault DIR`) once; the vault is remembered in the config file, so the tmux popups, Neovim mappings and hooks find it from any directory without any environment. Do not export `ASTROLABE_DIR` from rihla by default: it would override what the user chose. It remains the right tool for a fixed vault per machine or per environment, and then it must also reach tmux's global environment (`set-environment -g`).
-
-6. **Check.** Run `astrolabe doctor` inside tmux. It should show truecolour (or 256), Unicode glyphs, the vault you expect, and a config file with no warnings.
+Astrolabe CLI rewrites the `theme =` and `dir =` lines itself and keeps other lines and comments, so do not manage this file as a symlink into a dotfiles repository.

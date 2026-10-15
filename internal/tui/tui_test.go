@@ -337,8 +337,8 @@ func TestEditSaveRoundTrip(t *testing.T) {
 	}
 }
 
-// The reader's i and a open the editor already in Insert mode (DESIGN.md
-// §4.3: the loop is i … type … Esc Esc): i where the line's text starts,
+// The reader's i and a open the editor already in Insert mode (docs/internals.md
+// §4.3; the loop is i … type … Esc Esc): i where the line's text starts,
 // after any list/task/quote/heading marker; a at the end of the line.
 func TestEditInsertEntry(t *testing.T) {
 	h := newHarness(t, harnessOpt{}).open("Home.md")

@@ -1,6 +1,6 @@
 # Shell reference
 
-This page covers every shell verb and global flag, the search syntax, exit codes, sample output, and aliases and snippets for your shell. Back to the [README](../README.md).
+Every verb and global flag, the search syntax, exit codes, and shell snippets.
 
 ## Verbs
 

@@ -75,7 +75,7 @@ func (e *Editor) insertInput(in input) Result {
 	case "<S-Tab>":
 		e.insertTab(false)
 	case "<C-t>":
-		// Ctrl-t inserts a timestamp (DESIGN.md), replacing Vim's indent.
+		// Ctrl-t inserts a timestamp, replacing Vim's indent.
 		e.insertText(e.now().Format("2006-01-02 15:04"))
 	default:
 		if isChar(tok) {

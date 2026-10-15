@@ -21,7 +21,7 @@ type editSession struct {
 	w, h int
 }
 
-// Ways into the built-in editor from the reader (DESIGN.md §4.3).
+// Ways into the built-in editor from the reader (docs/internals.md §4.3).
 type editEntry int
 
 const (
@@ -214,7 +214,7 @@ func (a *app) editorResult(res editor.Result) {
 			}
 		})
 	case editor.ActionLeave:
-		// Autosave on leave (DESIGN.md §4.3): Esc in Normal mode saves a
+		// Autosave on leave (docs/internals.md §4.3): Esc in Normal mode saves a
 		// dirty buffer, then returns to the reader.
 		a.saveIfDirty(func() { a.leaveEditor(false) })
 	case editor.ActionCommand:

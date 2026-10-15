@@ -11,7 +11,7 @@ import (
 	"unicode/utf8"
 )
 
-// This file is the light line scanner of DESIGN.md §3: it extracts the link
+// This file is the light line scanner of docs/internals.md §3: it extracts the link
 // graph, tags, tasks and outline from a note without building an AST. It
 // understands frontmatter, fenced code blocks (``` and ~~~, also indented or
 // inside block quotes), inline code spans and %% / <!-- --> comments, which

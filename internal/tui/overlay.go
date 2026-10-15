@@ -11,7 +11,7 @@ import (
 	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
-// overlay is a centred raised panel above the page (DESIGN.md §4.2). The app
+// overlay is a centred raised panel above the page (docs/internals.md §4.2). The app
 // handles Esc (closing the topmost overlay) before passing keys on.
 type overlay interface {
 	key(a *app, k term.KeyEvent)
@@ -202,7 +202,7 @@ func (p *textPrompt) draw(a *app) {
 }
 
 // openCapture opens the capture prompt: one line appended to today's daily
-// note without leaving the page (DESIGN.md §4.3 Space c).
+// note without leaving the page (docs/internals.md §4.3 Space c).
 func (a *app) openCapture() {
 	p := &textPrompt{title: "Capture", prompt: a.gl.Crumb}
 	p.hint = func(a *app, p *textPrompt) string {

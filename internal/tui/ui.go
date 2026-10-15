@@ -57,7 +57,7 @@ func makeStyles(th theme.Theme) styles {
 	s.pageRule = theme.Style{FG: th.Border, BG: g}
 	if th.Hover.IsDefault() {
 		// 16 colours / monochrome: no painted grounds, so the selected row
-		// is carried by attributes (DESIGN.md §6).
+		// is carried by attributes (docs/internals.md §6).
 		s.sel = theme.Style{Attrs: theme.Bold | theme.Reverse}
 		s.selBar = theme.Style{FG: th.Accent, Attrs: theme.Bold}
 	} else {
@@ -90,7 +90,7 @@ func (s styles) onSel(st theme.Style) theme.Style {
 }
 
 // disp prepares a short string (a title, a path) for display: with bidi on,
-// right-to-left text is shaped and put in visual order (DESIGN.md §6). It
+// right-to-left text is shaped and put in visual order (docs/internals.md §6). It
 // reports whether the string was transformed, in which case byte positions
 // into the original no longer apply.
 func (a *app) disp(s string) (string, bool) {
@@ -313,7 +313,7 @@ func (in *lineInput) handleKey(k term.KeyEvent) (handled, changed bool) {
 // draw draws the field in [x, x+w) of row y and returns the cursor column.
 // When the text is wider than the field it scrolls so the cursor stays
 // visible. With bidi, right-to-left text is shown shaped and in visual
-// order (DESIGN.md §6) while editing stays logical; the cursor sits on the
+// order (docs/internals.md §6) while editing stays logical; the cursor sits on the
 // visual cell of the grapheme after it.
 func (in *lineInput) draw(s *term.Screen, x, y, w int, st theme.Style, bidi bool) int {
 	if w <= 0 {
@@ -467,7 +467,7 @@ func (l *listView) listKey(k term.KeyEvent, page int, vim bool) bool {
 // --- panels -------------------------------------------------------------------
 
 // panelRect returns a centred overlay rectangle of at most w×h cells, never
-// larger than 80×24 (DESIGN.md §4.2) nor than the screen minus a margin.
+// larger than 80×24 (docs/internals.md §4.2) nor than the screen minus a margin.
 func panelRect(sw, sh, w, h int) term.Rect {
 	if w > 80 {
 		w = 80

@@ -15,7 +15,7 @@ import (
 type Span = text.Span[theme.Style]
 
 // DefaultMeasure is the page measure used when Options.Measure is 0
-// (DESIGN.md §5 and §9).
+// (docs/internals.md §5 and §9).
 const DefaultMeasure = 78
 
 // Margin is the minimum number of cells kept free on each side of the
@@ -24,7 +24,7 @@ const DefaultMeasure = 78
 const Margin = 3
 
 // EmbedLines is the number of rendered lines of a note embed shown in the
-// page (DESIGN.md §5: "the first 12 lines of the target").
+// page (docs/internals.md §5: "the first 12 lines of the target").
 const EmbedLines = 12
 
 // Options controls one rendering. Only Width is required.
@@ -44,7 +44,7 @@ type Options struct {
 	// Glyphs is the glyph set; the zero value means theme.UnicodeGlyphs.
 	Glyphs theme.Glyphs
 	// Bidi enables the display transform for right-to-left text: Arabic
-	// shaping and bidi reordering of every line (DESIGN.md §6 bidi=on).
+	// shaping and bidi reordering of every line (docs/internals.md §6 bidi=on).
 	// Leave it off for pipes and terminals that do bidi themselves; RTL
 	// blocks are right-aligned either way.
 	Bidi bool
@@ -60,7 +60,7 @@ type Options struct {
 	// Today is the date overdue tasks are judged against (zero = now).
 	Today time.Time
 	// PaintGround pads every line to Width and paints the theme's ground
-	// behind all text (DESIGN.md §6 ground=on). When false the terminal's
+	// behind all text (docs/internals.md §6 ground=on). When false the terminal's
 	// own background shows through and lines are not padded.
 	PaintGround bool
 	// Title is the fallback title (normally the file name without .md),

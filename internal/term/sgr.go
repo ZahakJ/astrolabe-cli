@@ -25,7 +25,7 @@ type Encoder struct {
 	// Hyperlinks enables OSC 8 output for Style.Link (see AppendLink).
 	Hyperlinks bool
 	// BidiRuns emits whole lines (Screen rows, AppendSpans) for a terminal
-	// that reverses right-to-left runs itself (DESIGN.md §6, bidi=runs):
+	// that reverses right-to-left runs itself (docs/internals.md §6, bidi=runs):
 	// the text of each such run is emitted reversed, styles stay on their
 	// cells. Styled and AppendSGR, which see only fragments, ignore it; see
 	// RunsLine for text already serialised.
@@ -38,7 +38,7 @@ type Encoder struct {
 // dropped; with no colour every colour is dropped. Attributes and links are
 // kept. Indexed colours pass through where the profile can show them.
 //
-// For the semantic 16-colour policy of DESIGN.md §6 (accent → yellow, faint
+// For the semantic 16-colour policy of docs/internals.md §6 (accent → yellow, faint
 // → bright black, …) render with ThemeFor(t, Profile16), which maps tokens
 // by meaning rather than by hue; Downsample is the fallback for stray RGB.
 func Downsample(st theme.Style, p Profile) theme.Style {

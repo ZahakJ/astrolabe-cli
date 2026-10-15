@@ -24,7 +24,7 @@ func vaultInHome(t *testing.T, name string) (home, dir string) {
 }
 
 // TestStatusBarNamesVault: the status bar says which vault you are in
-// (DESIGN.md §4.2): "✦ ~/my-notes › runbooks › Lantern cutover".
+// (docs/internals.md §4.2): "✦ ~/my-notes › runbooks › Lantern cutover".
 func TestStatusBarNamesVault(t *testing.T) {
 	home, dir := vaultInHome(t, "my-notes")
 	h := newHarness(t, harnessOpt{dir: dir, home: home}).open("runbooks/Lantern cutover.md")

@@ -5,7 +5,7 @@
 // atomically with conflict detection.
 //
 // Nothing is persisted inside the vault except the notes themselves: the
-// index lives in memory for one run (DESIGN.md §1, §3). The package depends
+// index lives in memory for one run (docs/internals.md §1, §3). The package depends
 // only on the standard library; it deliberately uses a light line scanner
 // that understands code fences and frontmatter rather than a full Markdown
 // parse.

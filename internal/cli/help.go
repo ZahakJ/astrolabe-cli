@@ -4,8 +4,7 @@ import (
 	"strings"
 )
 
-// verbDoc is the manual of one verb. On a locked-down machine the help is
-// the manual, so each entry is short, complete and led by examples.
+// verbDoc is the manual of one verb.
 type verbDoc struct {
 	usage   string // one line, without "astrolabe "
 	summary string // one line
@@ -310,9 +309,8 @@ func usageLine(verb string) string {
 	return ""
 }
 
-const overview = `astrolabe — Astrolabe for the terminal: your Markdown notes, beautifully, in one
-static binary. A reader, an editor and shell verbs over a folder of plain .md
-files; the terminal companion of the Astrolabe web app. Short alias: ast.
+const overview = `astrolabe — a reader, an editor and shell verbs over a folder of plain .md
+files. Short alias: ast.
 
 Open
   astrolabe             today's daily note, else the last note, else home

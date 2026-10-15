@@ -1,6 +1,6 @@
 # Notes, storage and Obsidian vaults
 
-This page covers how notes are stored, how the vault is chosen, what Astrolabe CLI guarantees about your files, and exactly what it understands in an Obsidian vault. Back to the [README](../README.md).
+How notes are stored, how the vault is chosen, how files are written, and which Obsidian syntax is understood.
 
 Astrolabe CLI opens an Obsidian vault as it is. It needs no import and no configuration, and it never writes to `.obsidian/`. It opens a vault shared with [Astrolabe](https://github.com/ZahakJ/astrolabe), or any plain folder of `.md` files, the same way.
 
@@ -199,7 +199,7 @@ Astrolabe CLI refuses a toggle in these cases:
 | `example` | `≡` |
 | `quote`, `cite` | `❝` |
 
-Unknown kinds use the `note` style. The design called for `ℹ` and `※`, but neither glyph is in DejaVu Sans Mono, so Astrolabe CLI uses `¶` and `✱` instead.
+Unknown kinds use the `note` style.
 
 ## Other Markdown
 
@@ -229,14 +229,12 @@ With `--at HEADING`, the line goes at the end of that section, and Astrolabe CLI
 
 - **Plugins.** Dataview queries, Templater syntax and other plugin blocks show as ordinary text or code.
 - **Canvas.** `.canvas` files and the graph view.
-- **Images.** They are not displayed (Astrolabe CLI has no terminal image protocols in version 1).
+- **Images.** They are not displayed.
 - **Some syntax.** Inline footnotes `^[text]`, and image sizes such as `![[image.png|100]]`; the size stays in the alt text.
 - **Parts of the daily-notes settings.** The `template` setting, and Moment week tokens, which are copied literally.
 - **Workspace and appearance settings.** Everything else under `.obsidian/`.
 
 ## Using Astrolabe CLI and Obsidian on the same vault
-
-This works without special care:
 
 - Astrolabe CLI edits files in place with atomic writes and changes only the bytes you changed.
 - Astrolabe CLI adds nothing to the vault apart from the notes and lines you create.

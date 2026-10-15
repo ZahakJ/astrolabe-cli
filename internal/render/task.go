@@ -29,7 +29,7 @@ func (r *renderer) taskBox(t *md.Task, a attr) (string, theme.Style, attr) {
 	return "[" + cleanText(string(t.State)) + "]", r.accent(), a
 }
 
-// Due date and priority markers (DESIGN.md §3).
+// Due date and priority markers (docs/internals.md §3).
 var (
 	dueRe  = regexp.MustCompile(`(?:📅\x{FE0F}?\s*|\bdue:\s*|@due\(\s*)(\d{4}-\d{2}-\d{2})\)?`)
 	prioRe = regexp.MustCompile(`\s*(🔺|⏫|🔼|🔽|⏬)\x{FE0F}?`)

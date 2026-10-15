@@ -86,7 +86,7 @@ func (r *resolver) Embed(p string) (title, source string, ok bool) {
 }
 
 // Run is the cli.Hooks.RunTUI entry point: it opens /dev/tty, shows what the
-// request asks for (DESIGN.md §4.1) and runs the event loop until the user
+// request asks for (docs/cli.md) and runs the event loop until the user
 // quits. The terminal is restored on every exit path, including panics and
 // termination signals (handled by internal/term).
 func Run(ctx context.Context, req cli.TUIRequest) (cli.TUIResult, error) {

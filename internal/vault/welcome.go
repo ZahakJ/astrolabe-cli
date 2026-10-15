@@ -11,15 +11,15 @@ import (
 const WelcomeName = "Welcome.md"
 
 // WelcomeNote is written into a fresh ~/notes on the first interactive run.
-// It teaches astrolabe in a minute using the keymap of DESIGN.md §4.3 and
-// exercises the renderer (callout, tasks, table, code, wikilinks).
+// It teaches the main keys in a minute and exercises the renderer (callout,
+// tasks, table, code, wikilinks).
 const WelcomeNote = `---
 tags: [astrolabe]
 ---
 # Welcome to astrolabe
 
-Your notes are plain Markdown files in this folder. astrolabe reads them
-beautifully, edits them in place and never keeps anything else here.
+Your notes are plain Markdown files in this folder. astrolabe renders them,
+edits them in place and keeps nothing else here.
 
 > [!tip] The one key to remember
 > Press ` + "`Space`" + ` and wait: a palette lists every command. ` + "`?`" + ` shows them all.

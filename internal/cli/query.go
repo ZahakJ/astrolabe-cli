@@ -204,7 +204,7 @@ func (p *painter) highlightWith(s string, matches [][2]int, avail int, ink func(
 	}
 	s = string(b)
 	if p.human && p.bidi && text.HasRTL(s) {
-		// Shaped and in visual order, as everywhere else (DESIGN.md §6):
+		// Shaped and in visual order, as everywhere else (docs/internals.md §6):
 		// cut in logical order first (so the start of the sentence stays),
 		// then reorder with the matches carried along.
 		lead := len(s) - len(strings.TrimLeft(s, " "))

@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// TestResolveRootOrder is the resolution order of DESIGN.md §3: flag, env,
+// TestResolveRootOrder is the resolution order of docs/internals.md §3: flag, env,
 // the vault you stand in, the remembered vault, ~/notes, cwd with .md,
 // else a new ~/notes.
 func TestResolveRootOrder(t *testing.T) {

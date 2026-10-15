@@ -2,7 +2,7 @@
 
 ## v0.2.1
 
-### It remembers where your notes are
+### Remembered vault
 
 - `astrolabe -C ~/my-notes` once is enough: the vault is written to the config key `dir` and stderr says once ``Using ~/my-notes from now on; `astrolabe vault` to change.`` A plain `astrolabe` then opens it from any directory, instead of falling through to an empty `~/notes` and the tutorial. A later `-C` with another folder replaces it; a folder found by its `.obsidian/`/`.astrolabe/` marker is remembered only while nothing is. `$ASTROLABE_DIR` still wins for its environment and is never remembered.
 - New resolution order: `-C`, `$ASTROLABE_DIR`, the vault you stand in (marker above the working directory), the remembered vault, `~/notes`, the working directory if it holds notes, a new `~/notes`. The remembered vault now beats `~/notes` and the working-directory guess (before, config `dir` came before markers). A remembered folder that no longer exists is skipped with a one-line warning.

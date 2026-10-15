@@ -136,7 +136,7 @@ func (h *help) draw(a *app) {
 
 // --- leader palette ----------------------------------------------------------------
 
-// palette lists the Space bindings after a pause on Space (DESIGN.md §4.3).
+// palette lists the Space bindings after a pause on Space (docs/internals.md §4.3).
 // Keys typed while it shows go to the dispatcher, which completes the
 // sequence and closes it.
 type palette struct{}

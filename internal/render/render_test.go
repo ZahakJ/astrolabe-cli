@@ -711,8 +711,8 @@ func TestDueChips(t *testing.T) {
 	}
 }
 
-// BenchmarkRender100K renders a ~100 KB note (DESIGN.md: re-render on
-// resize and fold must be fast).
+// BenchmarkRender100K renders a ~100 KB note (re-render on resize
+// and fold must be fast).
 func BenchmarkRender100K(b *testing.B) {
 	src := bigNote(100 << 10)
 	doc := md.Parse(src)

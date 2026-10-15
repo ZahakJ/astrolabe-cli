@@ -92,7 +92,7 @@ func TestStyleOver(t *testing.T) {
 	}
 }
 
-// contrastFloors are DESIGN.md §7's minimum ratios against the ground, plus
+// contrastFloors are docs/internals.md §7's minimum ratios against the ground, plus
 // the floors astrolabe holds itself to for other ink that must stay readable.
 func TestThemeContrast(t *testing.T) {
 	for _, name := range Names() {
@@ -180,7 +180,7 @@ func TestThemeTokensComplete(t *testing.T) {
 }
 
 func TestDesignAnchors(t *testing.T) {
-	// The colours DESIGN.md §7 fixes by value.
+	// The colours docs/internals.md §7 fixes by value.
 	tests := []struct {
 		theme, token string
 		got, want    Color

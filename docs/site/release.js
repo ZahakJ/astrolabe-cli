@@ -1,6 +1,6 @@
 // Fills the download block from the latest GitHub release.
 //
-// Markup contract (everything degrades to the static links when the API is unreachable):
+// Expected markup (the static links stay when the API is unreachable):
 //   <section id="download" data-release="owner/repo">
 //     <a data-release-primary href="https://github.com/owner/repo/releases/latest">Download</a>
 //     <span data-release-tag></span> <span data-release-date></span>

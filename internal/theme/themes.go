@@ -4,7 +4,7 @@ package theme
 // 256-colour profile derives from these by nearest colour, the 16-colour and
 // monochrome profiles use Basic16 and Mono.
 //
-// Contrast floors (DESIGN.md §7, enforced by tests): Text ≥ 7:1 on Ground,
+// Contrast floors (docs/internals.md §7, enforced by tests): Text ≥ 7:1 on Ground,
 // Muted ≥ 4.5:1, Faint ≥ 3:1.
 
 // Onyx is the default: a strictly neutral dark room — pure greys (R=G=B)

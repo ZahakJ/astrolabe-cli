@@ -165,7 +165,7 @@ func (r *Recent) Save() error {
 
 // UsedFile is the state file recording that astrolabe has opened a vault
 // in ~/notes before, so the first-run Welcome note never opens by itself
-// again (DESIGN.md §3).
+// again (docs/internals.md §3).
 func UsedFile(getenv func(string) string) string {
 	return filepath.Join(StateDir(getenv), "used")
 }

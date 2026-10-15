@@ -1,10 +1,10 @@
 # Configuration and themes
 
-This page covers the six themes, every configuration key with its environment variable and flag, and the other environment variables Astrolabe CLI reads. Back to the [README](../README.md).
+Themes, configuration keys, and environment variables.
 
 ## Themes
 
-There are six themes: `onyx` (the default: pure neutral greys with gold as the only accent, on the mark, bullets, links and bars), `iron-gall` (a warm near-black ground, ivory text and a gold accent), `parchment` (the light version of iron-gall), `graphite` (a neutral dark ground with the gold accent), `mocha` (Catppuccin) and `sidereal` (a deep blue-black night sky with violet and cyan; in 16 colours it uses magenta and cyan where the others use yellow). A test checks every theme for contrast: body text at least 7:1, muted text at least 4.5:1 and faint text at least 3:1. `Space T` cycles the themes, and `:theme NAME` picks one; both save the choice in the config file.
+There are six themes: `onyx` (the default: pure neutral greys with gold as the only accent, on the mark, bullets, links and bars), `iron-gall` (a warm near-black ground, ivory text and a gold accent), `parchment` (the light version of iron-gall), `graphite` (a neutral dark ground with the gold accent), `mocha` (Catppuccin) and `sidereal` (a deep blue-black night sky with violet and cyan; in 16 colours it uses magenta and cyan where the others use yellow). `Space T` cycles the themes, and `:theme NAME` picks one; both save the choice in the config file.
 
 ![Astrolabe CLI in the parchment theme](shots/parchment.svg)
 

@@ -253,7 +253,7 @@ func detectUTF8(env func(string) string, goos string) bool {
 	return goos == "darwin" && env("TERM_PROGRAM") != ""
 }
 
-// BidiMode is how right-to-left text reaches the terminal (DESIGN.md §6).
+// BidiMode is how right-to-left text reaches the terminal (docs/internals.md §6).
 type BidiMode int
 
 // Bidi modes.
@@ -300,7 +300,7 @@ func ParseBidi(s string) (m BidiMode, forced bool, err error) {
 	return BidiOn, false, fmt.Errorf("invalid bidi mode %q (want auto, on, off or runs)", s)
 }
 
-// bidiAuto is DESIGN.md §6 for --bidi auto: runs for kitty, off for the
+// bidiAuto is docs/internals.md §6 for --bidi auto: runs for kitty, off for the
 // terminals known to implement bidi themselves (VTE, Konsole, Apple
 // Terminal, mlterm), else on. Inside tmux the environment describes the
 // terminal the session was started from, which may not be the one attached

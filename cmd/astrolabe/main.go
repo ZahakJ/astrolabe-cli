@@ -1,8 +1,7 @@
 // Command astrolabe is a terminal Markdown notes tool: a reader, a small modal
 // editor and a set of shell verbs over a folder of plain .md files.
 //
-// This file only wires the process to internal/cli (DESIGN.md §2: "dispatch
-// only"). The interactive application, the renderer and the HTML exporter
+// This file only wires the process to internal/cli. The interactive application, the renderer and the HTML exporter
 // are connected through cli.Hooks.
 package main
 

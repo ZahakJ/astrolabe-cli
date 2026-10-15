@@ -11,7 +11,7 @@ import (
 	"github.com/ZahakJ/astrolabe-cli/internal/vault"
 )
 
-// afterRun records what this run learned about the vault (DESIGN.md §3):
+// afterRun records what this run learned about the vault (docs/internals.md §3):
 // a vault in ~/notes marks the state file "used" (so the first-run Welcome
 // note never opens by itself again), and a vault chosen by -C, or by a
 // marker above the working directory while nothing is remembered yet, is

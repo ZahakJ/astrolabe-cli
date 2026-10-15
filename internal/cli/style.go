@@ -55,7 +55,7 @@ func (p *painter) style(s string, st theme.Style) string {
 
 func (p *painter) fg(c theme.Color, a theme.Attr) theme.Style { return theme.Style{FG: c, Attrs: a} }
 
-// The semantic inks of DESIGN.md §7, foreground only. Body text and
+// The semantic inks of docs/internals.md §7, foreground only. Body text and
 // headings keep the terminal's own foreground (headings in bold): the
 // themes' ivory or sepia inks assume the theme's ground, which the CLI does
 // not paint, whereas the mid-tone accent, muted, faint and danger inks read
@@ -89,7 +89,7 @@ func (p *painter) match(s string) string {
 }
 
 // visual prepares a line for display in a terminal that does no bidi
-// (DESIGN.md §6); piped output is never reordered or shaped.
+// (docs/internals.md §6); piped output is never reordered or shaped.
 func (p *painter) visual(s string) string {
 	if !p.human || !p.bidi || !text.HasRTL(s) {
 		return s

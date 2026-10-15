@@ -1,5 +1,5 @@
 // Package render lays out a parsed note (internal/md) as the reader's page
-// described in DESIGN.md §5, and serialises pages as ANSI or plain text.
+// described in docs/internals.md §5, and serialises pages as ANSI or plain text.
 //
 // # Model
 //

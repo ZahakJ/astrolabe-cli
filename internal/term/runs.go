@@ -8,7 +8,7 @@ import (
 )
 
 // Emitting rows for terminals that reverse right-to-left runs themselves
-// (bidi=runs, DESIGN.md §6). The transform is applied last, on whole rows
+// (bidi=runs, docs/internals.md §6). The transform is applied last, on whole rows
 // as they are sent, so everything drawn over the text (truncation,
 // selections, cursor lines, overlays, highlights) is already in place: only
 // the text of each run moves, every cell keeps its own style.

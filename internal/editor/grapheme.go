@@ -8,8 +8,8 @@ import (
 	"github.com/rivo/uniseg"
 )
 
-// tabStop is the display width of a tab stop (DESIGN.md: tabs display as
-// spaces to the next multiple of 4).
+// tabStop is the display width of a tab stop: tabs display as spaces to the
+// next multiple of 4.
 const tabStop = 4
 
 // clusterCache memoises grapheme-cluster starts for recently used lines,

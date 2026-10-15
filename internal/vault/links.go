@@ -41,7 +41,7 @@ type BrokenLink struct {
 }
 
 // ResolveLink resolves a link written in the note at from, following
-// Obsidian (DESIGN.md §3):
+// Obsidian (docs/internals.md §3):
 //
 //  1. Exact path: for Markdown links relative to the linking note's folder,
 //     then relative to the vault root; for wikilinks relative to the vault

@@ -21,7 +21,7 @@ const (
 )
 
 // contextPanel is the right-hand panel: the outline above the backlinks
-// with their context lines (DESIGN.md §4.2).
+// with their context lines (docs/internals.md §4.2).
 type contextPanel struct {
 	auto   bool // follow the default (open at ≥ 124 columns)
 	open   bool // explicit state once toggled

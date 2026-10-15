@@ -11,7 +11,5 @@
 - [Terminals](terminals.md)
 - [Shell reference](cli.md)
 - [Shell, tmux and Neovim](integration.md)
-- [Verified on](verified.md)
-- [Design decisions](design-decisions.md)
-- [Compared with Emacs](vs-emacs.md)
+- [Design](design-decisions.md)
 - [Changelog](changelog.md)

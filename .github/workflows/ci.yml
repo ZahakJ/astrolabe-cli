@@ -38,7 +38,7 @@ jobs:
         with:
           go-version-file: go.mod
       - run: sh scripts/build.sh
-      - name: binary sizes (target ≤ 6 MiB, DESIGN.md §2)
+      - name: binary sizes (6 MiB budget)
         run: |
           ls -l dist/
           for f in dist/astrolabe-*; do

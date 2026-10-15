@@ -163,7 +163,7 @@ type walkEntry struct {
 	md   bool
 }
 
-// walk lists the vault's files, applying the scan rules of DESIGN.md §3:
+// walk lists the vault's files, applying the scan rules of docs/internals.md §3:
 // dot-directories, node_modules and .astrolabeignore matches are skipped; file
 // symlinks are followed, directory symlinks are not.
 //
@@ -592,7 +592,7 @@ func loadIgnore(root string) []string {
 }
 
 // ignored reports whether rel matches a .astrolabeignore pattern. Semantics
-// (gitignore-like, as the design is silent): a pattern without '/' matches
+// (gitignore-like): a pattern without '/' matches
 // the name of a file or directory at any depth; a pattern containing '/'
 // is matched against the whole relative path (a leading '/' is optional);
 // a trailing '/' restricts the pattern to directories; "**" matches any

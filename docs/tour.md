@@ -1,6 +1,6 @@
 # The first five minutes
 
-This page is the guided tour of Astrolabe CLI, step by step, with captures. Back to the [README](../README.md).
+A guided tour, step by step.
 
 The repository includes a sample vault, so you can try everything below without touching your own notes. Its dates fall around early October 2026, so which tasks count as "overdue" depends on today's date.
 

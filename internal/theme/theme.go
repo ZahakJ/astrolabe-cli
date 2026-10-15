@@ -11,7 +11,7 @@ type Callouts struct {
 	Failure, Danger, Bug, Example, Quote Color
 }
 
-// Theme is the semantic token set of DESIGN.md §7. Colour tokens are used
+// Theme is the semantic token set of docs/internals.md §7. Colour tokens are used
 // directly by the renderer; the composite Style tokens exist where a token
 // needs attributes too (so that 16-colour and monochrome variants can swap a
 // painted ground for reverse video).
@@ -130,7 +130,7 @@ func CalloutKind(kind string) string {
 	return "note"
 }
 
-// Basic16 returns the 16-colour variant of t per DESIGN.md §6: default
+// Basic16 returns the 16-colour variant of t per docs/internals.md §6: default
 // foreground and background, an ANSI accent (yellow, or the theme's
 // Accent16: magenta for sidereal), bright black as faint, no painted
 // grounds, and attributes (bold, reverse) doing the work. The result looks

@@ -14,7 +14,7 @@ import (
 // wordsPerMinute sets the reading-time estimate.
 const wordsPerMinute = 230
 
-// drawStatus draws the status bar (DESIGN.md §4.2): breadcrumb on the left,
+// drawStatus draws the status bar (docs/internals.md §4.2): breadcrumb on the left,
 // words · reading time or line:col and the mode pill on the right; a
 // transient message replaces the left side; the ":" and "/" lines replace
 // the whole bar while typing.
